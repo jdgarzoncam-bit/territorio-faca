@@ -8,273 +8,12 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <style>
-        :root {
-            --primary-color: #005a9e;
-            --primary-dark: #004075;
-            --primary-light: #eef5fc;
-            --bg-color: #f0f4f8;
-            --text-color: #2c3e50;
-            --border-radius: 16px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            display: flex;
-            height: 100vh;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Pantalla de Login */
-        #login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 90, 158, 0.85);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .login-card {
-            background: white;
-            padding: 35px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            width: 350px;
-            text-align: center;
-        }
-
-        .login-card h2 { color: var(--primary-color); margin-bottom: 8px; font-size: 1.5rem; }
-        .login-card p { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
-
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; }
-        .form-group input { 
-            width: 100%; 
-            padding: 11px 14px; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 10px; 
-            outline: none; 
-            font-size: 0.9rem;
-            background: #f8fafc;
-        }
-
-        .login-btn {
-            width: 100%; padding: 12px; background: var(--primary-color); color: white;
-            border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; font-weight: 600; margin-top: 10px;
-            transition: all 0.2s ease;
-        }
-        .login-btn:hover { background: var(--primary-dark); }
-        .login-error { color: #e53e3e; font-size: 0.8rem; margin-top: 10px; display: none; }
-
-        /* Contenedor Principal */
-        #app-container { 
-            display: none; 
-            width: 100%; 
-            height: 100%; 
-            position: relative;
-        }
-
-        /* Panel Lateral Minimalista Flotante (Estilo InsideBox) */
-        sidebar {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            bottom: 16px;
-            width: 360px;
-            background: #ffffff;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .sidebar-header { 
-            padding: 22px 20px 15px 20px; 
-            background: #ffffff; 
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .sidebar-header-icon {
-            width: 38px;
-            height: 38px;
-            background: var(--primary-light);
-            color: var(--primary-color);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .sidebar-header h1 { font-size: 1.15rem; font-weight: 700; color: var(--primary-dark); }
-        .sidebar-header p { font-size: 0.78rem; color: #718096; }
-
-        .sidebar-content { padding: 16px 20px; overflow-y: auto; flex: 1; }
-
-        .section-title {
-            font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;
-            color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px;
-            margin-top: 15px;
-        }
-        .section-title:first-child { margin-top: 0; }
-
-        /* Buscador Redondeado */
-        .search-box { 
-            display: flex; 
-            margin-bottom: 15px; 
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 3px;
-        }
-        .search-box input { 
-            flex: 1; 
-            padding: 8px 12px; 
-            border: none; 
-            background: transparent;
-            outline: none; 
-            font-size: 0.88rem;
-            color: #2d3748;
-        }
-        .search-box button { 
-            padding: 8px 14px; 
-            background: var(--primary-color); 
-            color: white; 
-            border: none; 
-            border-radius: 9px; 
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: background 0.2s;
-        }
-        .search-box button:hover { background: var(--primary-dark); }
-
-        /* Desplegables Redondeados y Elegantes */
-        details.custom-dropdown {
-            background: #ffffff; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 12px; 
-            margin-bottom: 10px; 
-            overflow: hidden;
-            transition: border-color 0.2s;
-        }
-        details.custom-dropdown[open] {
-            border-color: #cbd5e0;
-        }
-
-        details.custom-dropdown summary {
-            background: #f8fafc; 
-            color: var(--primary-dark); 
-            font-size: 0.88rem; 
-            font-weight: 600;
-            padding: 12px 14px; 
-            cursor: pointer; 
-            outline: none; 
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        details.custom-dropdown summary:hover { background: var(--primary-light); color: var(--primary-color); }
-
-        .dropdown-content {
-            padding: 12px 14px; 
-            font-size: 0.85rem; 
-            color: #4a5568; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px;
-            max-height: 220px; 
-            overflow-y: auto;
-        }
-
-        .select-all-container {
-            padding-bottom: 8px;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #edf2f7;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .filter-list { display: flex; flex-direction: column; gap: 8px; }
-        .filter-list label { 
-            font-size: 0.85rem; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            cursor: pointer; 
-            padding: 2px 0;
-            color: #4a5568;
-        }
-        .filter-list input[type="checkbox"] { 
-            accent-color: var(--primary-color); 
-            width: 16px; 
-            height: 16px; 
-            border-radius: 4px;
-        }
-
-        /* Ficha Territorial Redondeada */
-        .ficha-card { 
-            background: var(--primary-light); 
-            border: 1px solid #dce8f6; 
-            border-radius: 12px; 
-            padding: 14px; 
-            margin-top: 10px; 
-        }
-        .ficha-card h3 { 
-            font-size: 0.95rem; 
-            color: var(--primary-dark); 
-            margin-bottom: 8px; 
-            border-bottom: 1px dashed #cbd5e0; 
-            padding-bottom: 6px; 
-        }
-        .ficha-item { font-size: 0.82rem; margin-bottom: 5px; color: #4a5568; }
-        .ficha-item strong { color: #2d3748; }
-
-        .leaflet-tooltip-barrio {
-            background: rgba(255, 255, 255, 0.95); 
-            border: 1px solid var(--primary-color);
-            color: var(--primary-dark); 
-            font-weight: bold; 
-            padding: 3px 8px; 
-            border-radius: 6px;
-            font-size: 0.75rem; 
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-
-        #map { 
-            width: 100%; 
-            height: 100%; 
-            z-index: 1;
-        }
-    </style>
+    <!-- Archivo de Estilos Externo -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Login -->
+    <!-- Pantalla de Login -->
     <div id="login-overlay">
         <div class="login-card">
             <h2>Territorio Faca</h2>
@@ -305,11 +44,28 @@
             </div>
             
             <div class="sidebar-content">
-                <div class="section-title">Buscador</div>
+                <div class="section-title">Buscador Inteligente</div>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Buscar barrio o sector...">
+                    <input type="text" id="searchInput" placeholder="Dirección, barrio o lugar...">
                     <button id="searchBtn">Buscar</button>
                 </div>
+
+                <!-- NUEVA SECCIÓN: Alcaldía / Secretarías -->
+                <details class="custom-dropdown">
+                    <summary><span>🏛️ Alcaldía (Secretarías)</span></summary>
+                    <div class="dropdown-content">
+                        <div class="select-all-container">
+                            <label><input type="checkbox" id="select-all-secretarias" checked> (Seleccionar todo)</label>
+                        </div>
+                        <div class="filter-list filter-group">
+                            <label><input type="checkbox" class="chk-sec" id="sec-gobierno" checked> Secretaría de Gobierno</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-desarrollo" checked> Secretaría de Desarrollo Económico</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-planeacion" checked> Secretaría de Planeación</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-obras" checked> Secretaría de Obras Públicas</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-social" checked> Secretaría de Desarrollo Social</label>
+                        </div>
+                    </div>
+                </details>
 
                 <details class="custom-dropdown">
                     <summary><span>🗳️ Info Electoral</span></summary>
@@ -318,8 +74,8 @@
                     </div>
                 </details>
 
-                <!-- Desplegable: Filtros de Poblaciones -->
-                <details class="custom-dropdown" open>
+                <!-- Desplegable independiente: Filtros Poblacionales -->
+                <details class="custom-dropdown">
                     <summary><span>👥 Filtros Poblacionales</span></summary>
                     <div class="dropdown-content">
                         <div class="select-all-container">
@@ -333,7 +89,7 @@
                     </div>
                 </details>
 
-                <!-- Desplegable: Barrios y Sectores -->
+                <!-- Desplegable independiente: Barrios y Sectores -->
                 <details class="custom-dropdown" open>
                     <summary><span>🏘️ Barrios y Sectores (125)</span></summary>
                     <div class="dropdown-content">
@@ -346,9 +102,9 @@
                     </div>
                 </details>
 
-                <div class="section-title">Ficha Informativa</div>
+                <div class="section-title">Ficha Informativa / Cercanía</div>
                 <div id="fichaDetalle" class="ficha-card">
-                    <p style="font-size: 0.82rem; color: #666; font-style: italic;">Selecciona un sector en el mapa para ver sus detalles.</p>
+                    <p style="font-size: 0.82rem; color: #666; font-style: italic;">Selecciona un sector o busca una dirección para ver detalles y elementos cercanos.</p>
                 </div>
             </div>
         </sidebar>
@@ -359,240 +115,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
-    <script>
-        let map = null;
-        let geojsonLayer = null;
-        let datosOriginales = null;
-        let searchMarker = null;
-        let capaSeleccionada = null;
-        let barriosFiltroEstado = {};
-
-        function validarAcceso() {
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
-            const errorMsg = document.getElementById('loginError');
-
-            if (user === 'admin' && pass === 'FacaDemo2026!') {
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('app-container').style.display = 'flex';
-                inicializarSistemaMapa();
-            } else {
-                errorMsg.style.display = 'block';
-            }
-        }
-
-        document.getElementById('loginBtn').addEventListener('click', validarAcceso);
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') validarAcceso();
-        });
-
-        function inicializarSistemaMapa() {
-            if (map) return;
-
-            map = L.map('map', { zoomControl: false }).setView([4.8123, -74.3542], 14);
-            L.control.zoom({ position: 'topright' }).addTo(map);
-
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri &mdash; Cartografía Territorial'
-            }).addTo(map);
-
-            fetch('./barrios.geojson')
-                .then(response => {
-                    if (!response.ok) throw new Error('No se pudo encontrar barrios.geojson');
-                    return response.json();
-                })
-                .then(data => {
-                    datosOriginales = data;
-                    generarListaBarrios();
-                    actualizarMapa();
-
-                    if (geojsonLayer && geojsonLayer.getBounds().isValid()) {
-                        map.fitBounds(geojsonLayer.getBounds(), { padding: [60, 60] });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error cargando el GeoJSON:', error);
-                    document.getElementById('barrios-checkbox-container').innerHTML = 
-                        '<p style="color: red; font-size: 0.8rem;">Error al cargar barrios.geojson. Usa Live Server.</p>';
-                });
-
-            function obtenerNombreBarrio(feature, index) {
-                if (feature && feature.properties) {
-                    return feature.properties.nombre || feature.properties.Barrio || feature.properties['Barrio / sector'] || `Sector ${index + 1}`;
-                }
-                return `Sector ${index + 1}`;
-            }
-
-            function generarListaBarrios() {
-                const container = document.getElementById('barrios-checkbox-container');
-                container.innerHTML = '';
-
-                if (!datosOriginales || !datosOriginales.features) return;
-
-                datosOriginales.features.forEach((feature, index) => {
-                    const nombreBarrio = obtenerNombreBarrio(feature, index);
-                    const idCheck = `barrio-cb-${index}`;
-                    
-                    barriosFiltroEstado[nombreBarrio] = true;
-
-                    const label = document.createElement('label');
-                    label.innerHTML = `<input type="checkbox" class="chk-barrio" id="${idCheck}" data-nombre="${nombreBarrio}" checked> ${nombreBarrio}`;
-                    container.appendChild(label);
-
-                    label.querySelector('input').addEventListener('change', function(e) {
-                        const bNombre = e.target.getAttribute('data-nombre');
-                        barriosFiltroEstado[bNombre] = e.target.checked;
-                        actualizarMapa();
-                    });
-                });
-
-                const selectAllBarrios = document.getElementById('select-all-barrios');
-                selectAllBarrios.addEventListener('change', function() {
-                    const isChecked = this.checked;
-                    document.querySelectorAll('.chk-barrio').forEach(chk => {
-                        chk.checked = isChecked;
-                        const bNombre = chk.getAttribute('data-nombre');
-                        barriosFiltroEstado[bNombre] = isChecked;
-                    });
-                    actualizarMapa();
-                });
-            }
-
-            const selectAllPoblacion = document.getElementById('select-all-poblacion');
-            selectAllPoblacion.addEventListener('change', function() {
-                const isChecked = this.checked;
-                document.querySelectorAll('.chk-poblacion').forEach(chk => {
-                    chk.checked = isChecked;
-                });
-                actualizarMapa();
-            });
-
-            window.actualizarMapa = function() {
-                if (!datosOriginales) return;
-
-                const verAdulto = document.getElementById('filtro-adulto').checked;
-                const verJuventud = document.getElementById('filtro-juventud').checked;
-                const verReligion = document.getElementById('filtro-religion').checked;
-
-                if (geojsonLayer) {
-                    map.removeLayer(geojsonLayer);
-                }
-
-                geojsonLayer = L.geoJSON(datosOriginales, {
-                    filter: function(feature) {
-                        const props = feature.properties || {};
-                        const index = datosOriginales.features.indexOf(feature);
-                        const nombreBarrio = obtenerNombreBarrio(feature, index);
-
-                        if (barriosFiltroEstado[nombreBarrio] === false) {
-                            return false;
-                        }
-
-                        let cumpleAdulto = verAdulto && (props.adulto_mayor !== false);
-                        let cumpleJuventud = verJuventud && (props.juventud !== false);
-                        let cumpleReligion = verReligion && (props.religion !== false);
-
-                        return cumpleAdulto || cumpleJuventud || cumpleReligion;
-                    },
-                    pointToLayer: function(feature, latlng) {
-                        return L.circleMarker(latlng, {
-                            radius: 6,
-                            fillColor: "#005a9e",
-                            color: "#ffffff",
-                            weight: 1.5,
-                            opacity: 1,
-                            fillOpacity: 0.85
-                        });
-                    },
-                    onEachFeature: function(feature, layer) {
-                        const index = datosOriginales.features.indexOf(feature);
-                        const nombreBarrio = obtenerNombreBarrio(feature, index);
-
-                        layer.bindTooltip(nombreBarrio, {
-                            permanent: false,
-                            direction: 'top',
-                            className: 'leaflet-tooltip-barrio'
-                        });
-
-                        layer.on('click', function(e) {
-                            if (capaSeleccionada) {
-                                capaSeleccionada.setStyle({ fillColor: "#005a9e", radius: 6 });
-                            }
-                            capaSeleccionada = e.target;
-                            capaSeleccionada.setStyle({
-                                fillColor: "#e67e22",
-                                radius: 10
-                            });
-
-                            const p = feature.properties || {};
-                            document.getElementById('fichaDetalle').innerHTML = `
-                                <h3>${nombreBarrio}</h3>
-                                <div class="ficha-item"><strong>Zona:</strong> ${p.comuna_zona || 'Facatativá'}</div>
-                                <div class="ficha-item"><strong>Presidente JAC:</strong> ${p.jac_presidente || 'Por registrar'}</div>
-                                <div class="ficha-item"><strong>Líder Zonal:</strong> ${p.lider_zonal || 'Por registrar'}</div>
-                                <div class="ficha-item" style="margin-top:8px; padding-top:6px; border-top:1px dashed #cbd5e0;"><strong>🗳️ Puesto de Votación:</strong><br>${p.puesto_votacion || 'Por asignar'}</div>
-                            `;
-                        });
-                    }
-                }).addTo(map);
-            }
-
-            document.querySelectorAll('.chk-poblacion').forEach(checkbox => {
-                checkbox.addEventListener('change', actualizarMapa);
-            });
-
-            function realizarBusqueda() {
-                const query = document.getElementById('searchInput').value.trim();
-                if (!query) return;
-
-                let encontradoLocalmente = false;
-
-                if (datosOriginales && datosOriginales.features) {
-                    const coincidencia = datosOriginales.features.find((f, idx) => {
-                        const nom = obtenerNombreBarrio(f, idx);
-                        return nom.toLowerCase().includes(query.toLowerCase());
-                    });
-
-                    if (coincidencia) {
-                        const coords = coincidencia.geometry.coordinates;
-                        map.setView([coords[1], coords[0]], 16);
-                        encontradoLocalmente = true;
-                    }
-                }
-
-                if (!encontradoLocalmente) {
-                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", Facatativá, Cundinamarca")}`;
-                    
-                    fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data && data.length > 0) {
-                                const lat = parseFloat(data[0].lat);
-                                const lon = parseFloat(data[0].lon);
-                                
-                                map.setView([lat, lon], 16);
-
-                                if (searchMarker) {
-                                    map.removeLayer(searchMarker);
-                                }
-                                searchMarker = L.marker([lat, lon]).addTo(map)
-                                    .bindPopup(`<b>${data[0].display_name}</b>`)
-                                    .openPopup();
-                            } else {
-                                alert("No se encontró la ubicación en Facatativá.");
-                            }
-                        })
-                        .catch(err => console.error("Error en la búsqueda externa:", err));
-                }
-            }
-
-            document.getElementById('searchBtn').addEventListener('click', realizarBusqueda);
-            document.getElementById('searchInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') realizarBusqueda();
-            });
-
-            setTimeout(() => { map.invalidateSize(); }, 200);
-        }
-    </script>
+    <!-- Archivo de Lógica Externo -->
+    <script src="app.js"></script>
 </body>
 </html>
