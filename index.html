@@ -55,218 +55,81 @@
             text-align: center;
         }
 
-        .login-card h2 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-            font-size: 1.4rem;
-        }
+        .login-card h2 { color: var(--primary-color); margin-bottom: 10px; font-size: 1.4rem; }
+        .login-card p { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
 
-        .login-card p {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            outline: none;
-            font-size: 0.9rem;
-        }
-
-        .form-group input:focus {
-            border-color: var(--primary-color);
-        }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; font-weight: 600; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 0.9rem; }
 
         .login-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 10px;
+            width: 100%; padding: 10px; background: var(--primary-color); color: white;
+            border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; font-weight: 600; margin-top: 10px;
         }
-
-        .login-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .login-error {
-            color: #d9534f;
-            font-size: 0.8rem;
-            margin-top: 10px;
-            display: none;
-        }
+        .login-btn:hover { background: var(--primary-dark); }
+        .login-error { color: #d9534f; font-size: 0.8rem; margin-top: 10px; display: none; }
 
         /* Aplicación Principal */
-        #app-container {
-            display: none;
-            width: 100%;
-            height: 100%;
-        }
+        #app-container { display: none; width: 100%; height: 100%; }
 
-        /* Panel Lateral */
         sidebar {
-            width: 380px;
-            background: white;
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-            z-index: 1000;
+            width: 380px; background: white; border-right: 1px solid #ddd;
+            display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 1000;
         }
 
-        .sidebar-header {
-            padding: 20px;
-            background: var(--primary-color);
-            color: white;
-        }
+        .sidebar-header { padding: 20px; background: var(--primary-color); color: white; }
+        .sidebar-header h1 { font-size: 1.2rem; margin-bottom: 5px; }
+        .sidebar-header p { font-size: 0.85rem; opacity: 0.9; }
 
-        .sidebar-header h1 {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-
-        .sidebar-header p {
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
-
-        .sidebar-content {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-        }
+        .sidebar-content { padding: 20px; overflow-y: auto; flex: 1; }
 
         .section-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
+            font-size: 0.95rem; font-weight: 600; margin-bottom: 10px;
+            color: var(--primary-color); border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 15px;
         }
+        .section-title:first-child { margin-top: 0; }
 
         /* Buscador */
-        .search-box {
-            display: flex;
-            margin-bottom: 20px;
+        .search-box { display: flex; margin-bottom: 15px; }
+        .search-box input { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; font-size: 0.9rem; }
+        .search-box button { padding: 8px 15px; background: var(--primary-color); color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; }
+
+        /* Desplegables */
+        details.custom-dropdown {
+            background: #fdfefe; border: 1px solid #d1dede; border-radius: 6px; margin-bottom: 12px; overflow: hidden;
+        }
+        details.custom-dropdown summary {
+            background: #eef4f8; color: var(--primary-color); font-size: 0.95rem; font-weight: 600;
+            padding: 10px 15px; cursor: pointer; outline: none; user-select: none;
+        }
+        details.custom-dropdown summary:hover { background: #e2edf5; }
+
+        .dropdown-content {
+            padding: 12px 15px; font-size: 0.85rem; color: #444; display: flex; flex-direction: column; gap: 8px;
+            max-height: 250px; overflow-y: auto;
         }
 
-        .search-box input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px 0 0 4px;
-            outline: none;
-            font-size: 0.9rem;
-        }
+        .filter-list { display: flex; flex-direction: column; gap: 8px; }
+        .filter-list label { font-size: 0.9rem; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .filter-list input[type="checkbox"] { accent-color: var(--primary-color); width: 16px; height: 16px; }
 
-        .search-box input:focus {
-            border-color: var(--primary-color);
-        }
+        .ficha-card { background: #f9fbfb; border: 1px solid #d1dede; border-radius: 6px; padding: 15px; margin-top: 10px; }
+        .ficha-card h3 { font-size: 1rem; color: var(--primary-color); margin-bottom: 8px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+        .ficha-item { font-size: 0.85rem; margin-bottom: 6px; }
+        .ficha-item strong { color: #444; }
 
-        .search-box button {
-            padding: 8px 15px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-        }
-
-        .search-box button:hover {
-            background: var(--primary-dark);
-        }
-
-        /* Filtros de Poblaciones */
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .filter-group label {
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        .filter-group input[type="checkbox"] {
-            accent-color: var(--primary-color);
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Ficha del Barrio Seleccionado */
-        .ficha-card {
-            background: #f9fbfb;
-            border: 1px solid #d1dede;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-
-        .ficha-card h3 {
-            font-size: 1rem;
-            color: var(--primary-color);
-            margin-bottom: 8px;
-            border-bottom: 1px dashed #ccc;
-            padding-bottom: 5px;
-        }
-
-        .ficha-item {
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-        }
-
-        .ficha-item strong {
-            color: #444;
-        }
-
-        /* Estilo personalizado para el nombre fijo en el mapa */
         .leaflet-tooltip-barrio {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--primary-color);
-            color: var(--primary-dark);
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.92); border: 1px solid var(--primary-color);
+            color: var(--primary-dark); font-weight: bold; padding: 2px 6px; border-radius: 3px;
+            font-size: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
-        /* Contenedor del Mapa */
-        #map {
-            flex: 1;
-            height: 100%;
-        }
+        #map { flex: 1; height: 100%; }
     </style>
 </head>
 <body>
 
-    <!-- Pantalla de Inicio de Sesión -->
+    <!-- Login -->
     <div id="login-overlay">
         <div class="login-card">
             <h2>Territorio Faca</h2>
@@ -286,7 +149,6 @@
 
     <!-- Contenedor Principal -->
     <div id="app-container">
-        <!-- Panel Lateral de Control -->
         <sidebar>
             <div class="sidebar-header">
                 <h1>Territorio Faca</h1>
@@ -294,30 +156,46 @@
             </div>
             
             <div class="sidebar-content">
-                <!-- Buscador Dual -->
                 <div class="section-title">Buscar Ubicación</div>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Ej. Sector Centro...">
+                    <input type="text" id="searchInput" placeholder="Ej. Alamos, Centro...">
                     <button id="searchBtn">Buscar</button>
                 </div>
 
-                <!-- Menú de Poblaciones -->
-                <div class="section-title">Filtros de Poblaciones</div>
-                <div class="filter-group">
-                    <label><input type="checkbox" id="filtro-adulto" checked> Adulto Mayor</label>
-                    <label><input type="checkbox" id="filtro-juventud" checked> Juventud</label>
-                    <label><input type="checkbox" id="filtro-religion" checked> Religión / Culto</label>
-                </div>
+                <details class="custom-dropdown">
+                    <summary>🗳️ Info Electoral</summary>
+                    <div class="dropdown-content">
+                        <p><strong>Gestión de Puestos:</strong> Selecciona un sector en el mapa para consultar el colegio y las mesas de votación asignadas.</p>
+                    </div>
+                </details>
 
-                <!-- Ficha del Barrio Seleccionado -->
+                <details class="custom-dropdown" open>
+                    <summary>👥 Filtros de Poblaciones</summary>
+                    <div class="dropdown-content">
+                        <div class="filter-list filter-group">
+                            <label><input type="checkbox" id="filtro-adulto" checked> Adulto Mayor</label>
+                            <label><input type="checkbox" id="filtro-juventud" checked> Juventud</label>
+                            <label><input type="checkbox" id="filtro-religion" checked> Religión / Culto</label>
+                        </div>
+                    </div>
+                </details>
+
+                <details class="custom-dropdown" open>
+                    <summary>🏘️ Barrios y Sectores (125)</summary>
+                    <div class="dropdown-content">
+                        <div id="barrios-checkbox-container" class="filter-list">
+                            <p style="font-size: 0.8rem; color: #888;">Cargando los 125 sectores...</p>
+                        </div>
+                    </div>
+                </details>
+
                 <div class="section-title">Ficha Territorial</div>
                 <div id="fichaDetalle" class="ficha-card">
-                    <p style="font-size: 0.85rem; color: #666; font-style: italic;">Haz clic en un sector del mapa para ver su información detallada (Liderazgo, JAC y Puesto de Votación).</p>
+                    <p style="font-size: 0.85rem; color: #666; font-style: italic;">Haz clic en un sector del mapa o marca su casilla para ver su información detallada.</p>
                 </div>
             </div>
         </sidebar>
 
-        <!-- Mapa Leaflet -->
         <div id="map"></div>
     </div>
 
@@ -330,8 +208,8 @@
         let datosOriginales = null;
         let searchMarker = null;
         let capaSeleccionada = null;
+        let barriosFiltroEstado = {};
 
-        // Autenticación
         function validarAcceso() {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
@@ -354,75 +232,66 @@
         function inicializarSistemaMapa() {
             if (map) return;
 
-            // 1. Inicialización del mapa centrado en Facatativá
-            map = L.map('map').setView([4.7408, -74.3542], 14);
+            // Inicializar mapa centrado en Facatativá
+            map = L.map('map').setView([4.8123, -74.3542], 14);
 
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri &mdash; Fuente: Cartografía Territorial'
             }).addTo(map);
 
-            // 2. Datos de prueba con Polígonos
-            datosOriginales = {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "Polygon",
-                            "coordinates": [[
-                                [-74.3600, 4.7450],
-                                [-74.3500, 4.7450],
-                                [-74.3500, 4.7350],
-                                [-74.3600, 4.7350],
-                                [-74.3600, 4.7450]
-                            ]]
-                        },
-                        "properties": {
-                            "id_barrio": "FACA-01",
-                            "nombre": "Sector Centro",
-                            "comuna_zona": "Comuna 1 - Urbana",
-                            "poblacion_estimada": "4,500 hab.",
-                            "adulto_mayor": true,
-                            "juventud": true,
-                            "religion": true,
-                            "jac_presidente": "María Rodríguez (Tel: 3101234567)",
-                            "lider_zonal": "Carlos Gómez",
-                            "infraestructura": "Alcaldía Municipal, Parque Principal",
-                            "puesto_votacion": "IED Manuela Ayala de Gaitán (12 Mesas)"
-                        }
-                    },
-                    {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "Polygon",
-                            "coordinates": [[
-                                [-74.3700, 4.7550],
-                                [-74.3620, 4.7550],
-                                [-74.3620, 4.7480],
-                                [-74.3700, 4.7480],
-                                [-74.3700, 4.7550]
-                            ]]
-                        },
-                        "properties": {
-                            "id_barrio": "FACA-02",
-                            "nombre": "Sector Cartagenita",
-                            "comuna_zona": "Comuna 2 - Occidente",
-                            "poblacion_estimada": "6,200 hab.",
-                            "adulto_mayor": true,
-                            "juventud": false,
-                            "religion": true,
-                            "jac_presidente": "Pedro Pérez (Tel: 3209876543)",
-                            "lider_zonal": "Ana María Rojas",
-                            "infraestructura": "Polideportivo Local, Casal Comunal",
-                            "puesto_votacion": "Concentración Escolar Cartagenita (18 Mesas)"
-                        }
+            // Carga del archivo barrios.geojson
+            fetch('./barrios.geojson')
+                .then(response => {
+                    if (!response.ok) throw new Error('No se pudo encontrar el archivo barrios.geojson');
+                    return response.json();
+                })
+                .then(data => {
+                    datosOriginales = data;
+                    generarListaBarrios();
+                    actualizarMapa();
+
+                    // Ajustar automáticamente el zoom para mostrar todos los 125 puntos en pantalla
+                    if (geojsonLayer && geojsonLayer.getBounds().isValid()) {
+                        map.fitBounds(geojsonLayer.getBounds(), { padding: [50, 50] });
                     }
-                ]
-            };
+                })
+                .catch(error => {
+                    console.error('Error cargando el GeoJSON:', error);
+                    document.getElementById('barrios-checkbox-container').innerHTML = 
+                        '<p style="color: red; font-size: 0.8rem;">Error al cargar barrios.geojson. Usa Live Server en VS Code.</p>';
+                });
 
-            actualizarMapa();
+            function obtenerNombreBarrio(feature, index) {
+                if (feature && feature.properties) {
+                    return feature.properties.nombre || feature.properties.Barrio || feature.properties['Barrio / sector'] || `Sector ${index + 1}`;
+                }
+                return `Sector ${index + 1}`;
+            }
 
-            // 3. Renderizado con etiquetas permanentes y eventos de selección
+            function generarListaBarrios() {
+                const container = document.getElementById('barrios-checkbox-container');
+                container.innerHTML = '';
+
+                if (!datosOriginales || !datosOriginales.features) return;
+
+                datosOriginales.features.forEach((feature, index) => {
+                    const nombreBarrio = obtenerNombreBarrio(feature, index);
+                    const idCheck = `barrio-cb-${index}`;
+                    
+                    barriosFiltroEstado[nombreBarrio] = true;
+
+                    const label = document.createElement('label');
+                    label.innerHTML = `<input type="checkbox" id="${idCheck}" data-nombre="${nombreBarrio}" checked> ${nombreBarrio}`;
+                    container.appendChild(label);
+
+                    label.querySelector('input').addEventListener('change', function(e) {
+                        const bNombre = e.target.getAttribute('data-nombre');
+                        barriosFiltroEstado[bNombre] = e.target.checked;
+                        actualizarMapa();
+                    });
+                });
+            }
+
             window.actualizarMapa = function() {
                 if (!datosOriginales) return;
 
@@ -437,48 +306,59 @@
                 geojsonLayer = L.geoJSON(datosOriginales, {
                     filter: function(feature) {
                         const props = feature.properties || {};
-                        let cumpleAdulto = verAdulto && props.adulto_mayor;
-                        let cumpleJuventud = verJuventud && props.juventud;
-                        let cumpleReligion = verReligion && props.religion;
+                        const index = datosOriginales.features.indexOf(feature);
+                        const nombreBarrio = obtenerNombreBarrio(feature, index);
+
+                        if (barriosFiltroEstado[nombreBarrio] === false) {
+                            return false;
+                        }
+
+                        let cumpleAdulto = verAdulto && (props.adulto_mayor !== false);
+                        let cumpleJuventud = verJuventud && (props.juventud !== false);
+                        let cumpleReligion = verReligion && (props.religion !== false);
+
                         return cumpleAdulto || cumpleJuventud || cumpleReligion;
                     },
-                    style: function(feature) {
-                        return {
-                            color: "#005a9e",
-                            weight: 2,
+                    pointToLayer: function(feature, latlng) {
+                        return L.circleMarker(latlng, {
+                            radius: 6,
                             fillColor: "#005a9e",
-                            fillOpacity: 0.35
-                        };
+                            color: "#ffffff",
+                            weight: 1.5,
+                            opacity: 1,
+                            fillOpacity: 0.85
+                        });
                     },
                     onEachFeature: function(feature, layer) {
-                        if (feature.properties && feature.properties.nombre) {
-                            layer.bindTooltip(feature.properties.nombre, {
-                                permanent: true,
-                                direction: 'center',
-                                className: 'leaflet-tooltip-barrio'
-                            });
-                        }
+                        const index = datosOriginales.features.indexOf(feature);
+                        const nombreBarrio = obtenerNombreBarrio(feature, index);
+
+                        // Tooltip limpio para los 125 puntos
+                        layer.bindTooltip(nombreBarrio, {
+                            permanent: false, // Oculto por defecto para evitar saturar el mapa con 125 nombres
+                            direction: 'top',
+                            className: 'leaflet-tooltip-barrio'
+                        });
 
                         layer.on('click', function(e) {
                             if (capaSeleccionada) {
-                                geojsonLayer.resetStyle(capaSeleccionada);
+                                capaSeleccionada.setStyle({ fillColor: "#005a9e", radius: 6 });
                             }
                             capaSeleccionada = e.target;
                             capaSeleccionada.setStyle({
                                 fillColor: "#e67e22",
-                                color: "#d35400",
-                                fillOpacity: 0.6
+                                radius: 10
                             });
 
-                            const p = feature.properties;
+                            const p = feature.properties || {};
                             document.getElementById('fichaDetalle').innerHTML = `
-                                <h3>${p.nombre}</h3>
-                                <div class="ficha-item"><strong>Zona:</strong> ${p.comuna_zona}</div>
-                                <div class="ficha-item"><strong>Población:</strong> ${p.poblacion_estimada}</div>
-                                <div class="ficha-item"><strong>Presidente JAC:</strong> ${p.jac_presidente}</div>
-                                <div class="ficha-item"><strong>Líder Zonal:</strong> ${p.lider_zonal}</div>
-                                <div class="ficha-item"><strong>Edificios Clave:</strong> ${p.infraestructura}</div>
-                                <div class="ficha-item" style="margin-top:8px; padding-top:6px; border-top:1px solid #ddd;"><strong>🗳️ Puesto de Votación:</strong><br>${p.puesto_votacion}</div>
+                                <h3>${nombreBarrio}</h3>
+                                <div class="ficha-item"><strong>Zona:</strong> ${p.comuna_zona || 'Facatativá'}</div>
+                                <div class="ficha-item"><strong>Altitud:</strong> ${p.altitud || 'No registrada'}</div>
+                                <div class="ficha-item"><strong>Observaciones:</strong> ${p.observaciones || 'Sin observaciones'}</div>
+                                <div class="ficha-item"><strong>Presidente JAC:</strong> ${p.jac_presidente || 'Por registrar'}</div>
+                                <div class="ficha-item"><strong>Líder Zonal:</strong> ${p.lider_zonal || 'Por registrar'}</div>
+                                <div class="ficha-item" style="margin-top:8px; padding-top:6px; border-top:1px solid #ddd;"><strong>🗳️ Puesto de Votación:</strong><br>${p.puesto_votacion || 'Por asignar'}</div>
                             `;
                         });
                     }
@@ -489,7 +369,7 @@
                 checkbox.addEventListener('change', actualizarMapa);
             });
 
-            // 4. Buscador dual con corrección de marcador activo
+            // Buscador dual optimizado
             function realizarBusqueda() {
                 const query = document.getElementById('searchInput').value.trim();
                 if (!query) return;
@@ -497,14 +377,14 @@
                 let encontradoLocalmente = false;
 
                 if (datosOriginales && datosOriginales.features) {
-                    const coincidencia = datosOriginales.features.find(f => 
-                        f.properties && f.properties.nombre && 
-                        f.properties.nombre.toLowerCase().includes(query.toLowerCase())
-                    );
+                    const coincidencia = datosOriginales.features.find((f, idx) => {
+                        const nom = obtenerNombreBarrio(f, idx);
+                        return nom.toLowerCase().includes(query.toLowerCase());
+                    });
 
                     if (coincidencia) {
-                        const bounds = L.geoJSON(coincidencia).getBounds();
-                        map.fitBounds(bounds);
+                        const coords = coincidencia.geometry.coordinates;
+                        map.setView([coords[1], coords[0]], 16);
                         encontradoLocalmente = true;
                     }
                 }
@@ -521,7 +401,6 @@
                                 
                                 map.setView([lat, lon], 16);
 
-                                // Remover marcador anterior si existe y colocar el nuevo correctamente
                                 if (searchMarker) {
                                     map.removeLayer(searchMarker);
                                 }
