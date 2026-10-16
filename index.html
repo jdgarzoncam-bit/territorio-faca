@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Territorio Faca - Plataforma de Gestión Territorial y Electoral</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <style>
+        :root {
+            --primary-color: #005a9e;
+            --primary-dark: #004075;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --accent-color: #e67e22;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        /* Pantalla de Login */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 90, 158, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 350px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .login-card p {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .login-error {
+            color: #d9534f;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* Aplicación Principal */
+        #app-container {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Panel Lateral */
+        sidebar {
+            width: 380px;
+            background: white;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        /* Buscador */
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .search-box button {
+            padding: 8px 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .search-box button:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Filtros de Poblaciones */
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .filter-group input[type="checkbox"] {
+            accent-color: var(--primary-color);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Ficha del Barrio Seleccionado */
+        .ficha-card {
+            background: #f9fbfb;
+            border: 1px solid #d1dede;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .ficha-card h3 {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 5px;
+        }
+
+        .ficha-item {
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .ficha-item strong {
+            color: #444;
+        }
+
+        /* Estilo personalizado para el nombre fijo en el mapa */
+        .leaflet-tooltip-barrio {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--primary-color);
+            color: var(--primary-dark);
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Contenedor del Mapa */
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Pantalla de Inicio de Sesión -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <h2>Territorio Faca</h2>
+            <p>Plataforma de Gestión Territorial y Electoral</p>
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" placeholder="Ej. admin">
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" placeholder="Contraseña">
+            </div>
+            <button class="login-btn" id="loginBtn">Ingresar</button>
+            <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal -->
+    <div id="app-container">
+        <!-- Panel Lateral de Control -->
+        <sidebar>
+            <div class="sidebar-header">
+                <h1>Territorio Faca</h1>
+                <p>Sistema de Inteligencia Territorial</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <!-- Buscador Dual -->
+                <div class="section-title">Buscar Ubicación</div>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Ej. Sector Centro...">
+                    <button id="searchBtn">Buscar</button>
+                </div>
+
+                <!-- Menú de Poblaciones -->
+                <div class="section-title">Filtros de Poblaciones</div>
+                <div class="filter-group">
+                    <label><input type="checkbox" id="filtro-adulto" checked> Adulto Mayor</label>
+                    <label><input type="checkbox" id="filtro-juventud" checked> Juventud</label>
+                    <label><input type="checkbox" id="filtro-religion" checked> Religión / Culto</label>
+                </div>
+
+                <!-- Ficha del Barrio Seleccionado -->
+                <div class="section-title">Ficha Territorial</div>
+                <div id="fichaDetalle" class="ficha-card">
+                    <p style="font-size: 0.85rem; color: #666; font-style: italic;">Haz clic en un sector del mapa para ver su información detallada (Liderazgo, JAC y Puesto de Votación).</p>
+                </div>
+            </div>
+        </sidebar>
+
+        <!-- Mapa Leaflet -->
+        <div id="map"></div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <script>
+        let map = null;
+        let geojsonLayer = null;
+        let datosOriginales = null;
+        let searchMarker = null;
+        let capaSeleccionada = null;
+
+        // Autenticación
+        function validarAcceso() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const errorMsg = document.getElementById('loginError');
+
+            if (user === 'admin' && pass === 'FacaDemo2026!') {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                inicializarSistemaMapa();
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        document.getElementById('loginBtn').addEventListener('click', validarAcceso);
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') validarAcceso();
+        });
+
+        function inicializarSistemaMapa() {
+            if (map) return;
+
+            // 1. Inicialización del mapa centrado en Facatativá
+            map = L.map('map').setView([4.7408, -74.3542], 14);
+
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Fuente: Cartografía Territorial'
+            }).addTo(map);
+
+            // 2. Datos de prueba con Polígonos
+            datosOriginales = {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [-74.3600, 4.7450],
+                                [-74.3500, 4.7450],
+                                [-74.3500, 4.7350],
+                                [-74.3600, 4.7350],
+                                [-74.3600, 4.7450]
+                            ]]
+                        },
+                        "properties": {
+                            "id_barrio": "FACA-01",
+                            "nombre": "Sector Centro",
+                            "comuna_zona": "Comuna 1 - Urbana",
+                            "poblacion_estimada": "4,500 hab.",
+                            "adulto_mayor": true,
+                            "juventud": true,
+                            "religion": true,
+                            "jac_presidente": "María Rodríguez (Tel: 3101234567)",
+                            "lider_zonal": "Carlos Gómez",
+                            "infraestructura": "Alcaldía Municipal, Parque Principal",
+                            "puesto_votacion": "IED Manuela Ayala de Gaitán (12 Mesas)"
+                        }
+                    },
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [[
+                                [-74.3700, 4.7550],
+                                [-74.3620, 4.7550],
+                                [-74.3620, 4.7480],
+                                [-74.3700, 4.7480],
+                                [-74.3700, 4.7550]
+                            ]]
+                        },
+                        "properties": {
+                            "id_barrio": "FACA-02",
+                            "nombre": "Sector Cartagenita",
+                            "comuna_zona": "Comuna 2 - Occidente",
+                            "poblacion_estimada": "6,200 hab.",
+                            "adulto_mayor": true,
+                            "juventud": false,
+                            "religion": true,
+                            "jac_presidente": "Pedro Pérez (Tel: 3209876543)",
+                            "lider_zonal": "Ana María Rojas",
+                            "infraestructura": "Polideportivo Local, Casal Comunal",
+                            "puesto_votacion": "Concentración Escolar Cartagenita (18 Mesas)"
+                        }
+                    }
+                ]
+            };
+
+            actualizarMapa();
+
+            // 3. Renderizado con etiquetas permanentes y eventos de selección
+            window.actualizarMapa = function() {
+                if (!datosOriginales) return;
+
+                const verAdulto = document.getElementById('filtro-adulto').checked;
+                const verJuventud = document.getElementById('filtro-juventud').checked;
+                const verReligion = document.getElementById('filtro-religion').checked;
+
+                if (geojsonLayer) {
+                    map.removeLayer(geojsonLayer);
+                }
+
+                geojsonLayer = L.geoJSON(datosOriginales, {
+                    filter: function(feature) {
+                        const props = feature.properties || {};
+                        let cumpleAdulto = verAdulto && props.adulto_mayor;
+                        let cumpleJuventud = verJuventud && props.juventud;
+                        let cumpleReligion = verReligion && props.religion;
+                        return cumpleAdulto || cumpleJuventud || cumpleReligion;
+                    },
+                    style: function(feature) {
+                        return {
+                            color: "#005a9e",
+                            weight: 2,
+                            fillColor: "#005a9e",
+                            fillOpacity: 0.35
+                        };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        if (feature.properties && feature.properties.nombre) {
+                            layer.bindTooltip(feature.properties.nombre, {
+                                permanent: true,
+                                direction: 'center',
+                                className: 'leaflet-tooltip-barrio'
+                            });
+                        }
+
+                        layer.on('click', function(e) {
+                            if (capaSeleccionada) {
+                                geojsonLayer.resetStyle(capaSeleccionada);
+                            }
+                            capaSeleccionada = e.target;
+                            capaSeleccionada.setStyle({
+                                fillColor: "#e67e22",
+                                color: "#d35400",
+                                fillOpacity: 0.6
+                            });
+
+                            const p = feature.properties;
+                            document.getElementById('fichaDetalle').innerHTML = `
+                                <h3>${p.nombre}</h3>
+                                <div class="ficha-item"><strong>Zona:</strong> ${p.comuna_zona}</div>
+                                <div class="ficha-item"><strong>Población:</strong> ${p.poblacion_estimada}</div>
+                                <div class="ficha-item"><strong>Presidente JAC:</strong> ${p.jac_presidente}</div>
+                                <div class="ficha-item"><strong>Líder Zonal:</strong> ${p.lider_zonal}</div>
+                                <div class="ficha-item"><strong>Edificios Clave:</strong> ${p.infraestructura}</div>
+                                <div class="ficha-item" style="margin-top:8px; padding-top:6px; border-top:1px solid #ddd;"><strong>🗳️ Puesto de Votación:</strong><br>${p.puesto_votacion}</div>
+                            `;
+                        });
+                    }
+                }).addTo(map);
+            }
+
+            document.querySelectorAll('.filter-group input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', actualizarMapa);
+            });
+
+            // 4. Buscador dual con corrección de marcador activo
+            function realizarBusqueda() {
+                const query = document.getElementById('searchInput').value.trim();
+                if (!query) return;
+
+                let encontradoLocalmente = false;
+
+                if (datosOriginales && datosOriginales.features) {
+                    const coincidencia = datosOriginales.features.find(f => 
+                        f.properties && f.properties.nombre && 
+                        f.properties.nombre.toLowerCase().includes(query.toLowerCase())
+                    );
+
+                    if (coincidencia) {
+                        const bounds = L.geoJSON(coincidencia).getBounds();
+                        map.fitBounds(bounds);
+                        encontradoLocalmente = true;
+                    }
+                }
+
+                if (!encontradoLocalmente) {
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", Facatativá, Cundinamarca")}`;
+                    
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                const lat = parseFloat(data[0].lat);
+                                const lon = parseFloat(data[0].lon);
+                                
+                                map.setView([lat, lon], 16);
+
+                                // Remover marcador anterior si existe y colocar el nuevo correctamente
+                                if (searchMarker) {
+                                    map.removeLayer(searchMarker);
+                                }
+                                searchMarker = L.marker([lat, lon]).addTo(map)
+                                    .bindPopup(`<b>${data[0].display_name}</b>`)
+                                    .openPopup();
+                            } else {
+                                alert("No se encontró la ubicación en Facatativá.");
+                            }
+                        })
+                        .catch(err => console.error("Error en la búsqueda externa:", err));
+                }
+            }
+
+            document.getElementById('searchBtn').addEventListener('click', realizarBusqueda);
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') realizarBusqueda();
+            });
+
+            setTimeout(() => { map.invalidateSize(); }, 200);
+        }
+    </script>
+</body>
+</html>
