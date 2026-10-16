@@ -12,16 +12,17 @@
         :root {
             --primary-color: #005a9e;
             --primary-dark: #004075;
-            --bg-color: #f4f7f6;
-            --text-color: #333;
-            --accent-color: #e67e22;
+            --primary-light: #eef5fc;
+            --bg-color: #f0f4f8;
+            --text-color: #2c3e50;
+            --border-radius: 16px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
@@ -30,6 +31,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             overflow: hidden;
+            position: relative;
         }
 
         /* Pantalla de Login */
@@ -40,6 +42,7 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 90, 158, 0.85);
+            backdrop-filter: blur(4px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -49,82 +52,224 @@
         .login-card {
             background: white;
             padding: 35px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             width: 350px;
             text-align: center;
         }
 
-        .login-card h2 { color: var(--primary-color); margin-bottom: 10px; font-size: 1.4rem; }
+        .login-card h2 { color: var(--primary-color); margin-bottom: 8px; font-size: 1.5rem; }
         .login-card p { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
 
         .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; font-weight: 600; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; font-size: 0.9rem; }
+        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; }
+        .form-group input { 
+            width: 100%; 
+            padding: 11px 14px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 10px; 
+            outline: none; 
+            font-size: 0.9rem;
+            background: #f8fafc;
+        }
 
         .login-btn {
-            width: 100%; padding: 10px; background: var(--primary-color); color: white;
-            border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; font-weight: 600; margin-top: 10px;
+            width: 100%; padding: 12px; background: var(--primary-color); color: white;
+            border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; font-weight: 600; margin-top: 10px;
+            transition: all 0.2s ease;
         }
         .login-btn:hover { background: var(--primary-dark); }
-        .login-error { color: #d9534f; font-size: 0.8rem; margin-top: 10px; display: none; }
+        .login-error { color: #e53e3e; font-size: 0.8rem; margin-top: 10px; display: none; }
 
-        /* Aplicación Principal */
-        #app-container { display: none; width: 100%; height: 100%; }
-
-        sidebar {
-            width: 380px; background: white; border-right: 1px solid #ddd;
-            display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 1000;
+        /* Contenedor Principal */
+        #app-container { 
+            display: none; 
+            width: 100%; 
+            height: 100%; 
+            position: relative;
         }
 
-        .sidebar-header { padding: 20px; background: var(--primary-color); color: white; }
-        .sidebar-header h1 { font-size: 1.2rem; margin-bottom: 5px; }
-        .sidebar-header p { font-size: 0.85rem; opacity: 0.9; }
+        /* Panel Lateral Minimalista Flotante (Estilo InsideBox) */
+        sidebar {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            bottom: 16px;
+            width: 360px;
+            background: #ffffff;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            z-index: 1000;
+            overflow: hidden;
+        }
 
-        .sidebar-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .sidebar-header { 
+            padding: 22px 20px 15px 20px; 
+            background: #ffffff; 
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .sidebar-header-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .sidebar-header h1 { font-size: 1.15rem; font-weight: 700; color: var(--primary-dark); }
+        .sidebar-header p { font-size: 0.78rem; color: #718096; }
+
+        .sidebar-content { padding: 16px 20px; overflow-y: auto; flex: 1; }
 
         .section-title {
-            font-size: 0.95rem; font-weight: 600; margin-bottom: 10px;
-            color: var(--primary-color); border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 15px;
+            font-size: 0.85rem; font-weight: 700; margin-bottom: 10px;
+            color: #a0aec0; text-transform: uppercase; letter-spacing: 0.5px;
+            margin-top: 15px;
         }
         .section-title:first-child { margin-top: 0; }
 
-        /* Buscador */
-        .search-box { display: flex; margin-bottom: 15px; }
-        .search-box input { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px 0 0 4px; outline: none; font-size: 0.9rem; }
-        .search-box button { padding: 8px 15px; background: var(--primary-color); color: white; border: none; border-radius: 0 4px 4px 0; cursor: pointer; }
+        /* Buscador Redondeado */
+        .search-box { 
+            display: flex; 
+            margin-bottom: 15px; 
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 3px;
+        }
+        .search-box input { 
+            flex: 1; 
+            padding: 8px 12px; 
+            border: none; 
+            background: transparent;
+            outline: none; 
+            font-size: 0.88rem;
+            color: #2d3748;
+        }
+        .search-box button { 
+            padding: 8px 14px; 
+            background: var(--primary-color); 
+            color: white; 
+            border: none; 
+            border-radius: 9px; 
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .search-box button:hover { background: var(--primary-dark); }
 
-        /* Desplegables */
+        /* Desplegables Redondeados y Elegantes */
         details.custom-dropdown {
-            background: #fdfefe; border: 1px solid #d1dede; border-radius: 6px; margin-bottom: 12px; overflow: hidden;
+            background: #ffffff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            margin-bottom: 10px; 
+            overflow: hidden;
+            transition: border-color 0.2s;
         }
+        details.custom-dropdown[open] {
+            border-color: #cbd5e0;
+        }
+
         details.custom-dropdown summary {
-            background: #eef4f8; color: var(--primary-color); font-size: 0.95rem; font-weight: 600;
-            padding: 10px 15px; cursor: pointer; outline: none; user-select: none;
+            background: #f8fafc; 
+            color: var(--primary-dark); 
+            font-size: 0.88rem; 
+            font-weight: 600;
+            padding: 12px 14px; 
+            cursor: pointer; 
+            outline: none; 
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        details.custom-dropdown summary:hover { background: #e2edf5; }
+        details.custom-dropdown summary:hover { background: var(--primary-light); color: var(--primary-color); }
 
         .dropdown-content {
-            padding: 12px 15px; font-size: 0.85rem; color: #444; display: flex; flex-direction: column; gap: 8px;
-            max-height: 250px; overflow-y: auto;
+            padding: 12px 14px; 
+            font-size: 0.85rem; 
+            color: #4a5568; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px;
+            max-height: 220px; 
+            overflow-y: auto;
+        }
+
+        .select-all-container {
+            padding-bottom: 8px;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #edf2f7;
+            font-weight: 600;
+            color: var(--primary-color);
         }
 
         .filter-list { display: flex; flex-direction: column; gap: 8px; }
-        .filter-list label { font-size: 0.9rem; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .filter-list input[type="checkbox"] { accent-color: var(--primary-color); width: 16px; height: 16px; }
-
-        .ficha-card { background: #f9fbfb; border: 1px solid #d1dede; border-radius: 6px; padding: 15px; margin-top: 10px; }
-        .ficha-card h3 { font-size: 1rem; color: var(--primary-color); margin-bottom: 8px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
-        .ficha-item { font-size: 0.85rem; margin-bottom: 6px; }
-        .ficha-item strong { color: #444; }
-
-        .leaflet-tooltip-barrio {
-            background: rgba(255, 255, 255, 0.92); border: 1px solid var(--primary-color);
-            color: var(--primary-dark); font-weight: bold; padding: 2px 6px; border-radius: 3px;
-            font-size: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        .filter-list label { 
+            font-size: 0.85rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            cursor: pointer; 
+            padding: 2px 0;
+            color: #4a5568;
+        }
+        .filter-list input[type="checkbox"] { 
+            accent-color: var(--primary-color); 
+            width: 16px; 
+            height: 16px; 
+            border-radius: 4px;
         }
 
-        #map { flex: 1; height: 100%; }
+        /* Ficha Territorial Redondeada */
+        .ficha-card { 
+            background: var(--primary-light); 
+            border: 1px solid #dce8f6; 
+            border-radius: 12px; 
+            padding: 14px; 
+            margin-top: 10px; 
+        }
+        .ficha-card h3 { 
+            font-size: 0.95rem; 
+            color: var(--primary-dark); 
+            margin-bottom: 8px; 
+            border-bottom: 1px dashed #cbd5e0; 
+            padding-bottom: 6px; 
+        }
+        .ficha-item { font-size: 0.82rem; margin-bottom: 5px; color: #4a5568; }
+        .ficha-item strong { color: #2d3748; }
+
+        .leaflet-tooltip-barrio {
+            background: rgba(255, 255, 255, 0.95); 
+            border: 1px solid var(--primary-color);
+            color: var(--primary-dark); 
+            font-weight: bold; 
+            padding: 3px 8px; 
+            border-radius: 6px;
+            font-size: 0.75rem; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        #map { 
+            width: 100%; 
+            height: 100%; 
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
@@ -149,49 +294,61 @@
 
     <!-- Contenedor Principal -->
     <div id="app-container">
+        <!-- Sidebar Flotante y Redondeado -->
         <sidebar>
             <div class="sidebar-header">
-                <h1>Territorio Faca</h1>
-                <p>Sistema de Inteligencia Territorial</p>
+                <div class="sidebar-header-icon">🗺️</div>
+                <div>
+                    <h1>Territorio Faca</h1>
+                    <p>Inteligencia Territorial</p>
+                </div>
             </div>
             
             <div class="sidebar-content">
-                <div class="section-title">Buscar Ubicación</div>
+                <div class="section-title">Buscador</div>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Ej. Alamos, Centro...">
+                    <input type="text" id="searchInput" placeholder="Buscar barrio o sector...">
                     <button id="searchBtn">Buscar</button>
                 </div>
 
                 <details class="custom-dropdown">
-                    <summary>🗳️ Info Electoral</summary>
+                    <summary><span>🗳️ Info Electoral</span></summary>
                     <div class="dropdown-content">
-                        <p><strong>Gestión de Puestos:</strong> Selecciona un sector en el mapa para consultar el colegio y las mesas de votación asignadas.</p>
+                        <p style="font-size: 0.82rem;"><strong>Gestión de Puestos:</strong> Haz clic en un sector en el mapa para consultar el puesto de votación y las mesas asignadas.</p>
                     </div>
                 </details>
 
+                <!-- Desplegable: Filtros de Poblaciones -->
                 <details class="custom-dropdown" open>
-                    <summary>👥 Filtros de Poblaciones</summary>
+                    <summary><span>👥 Filtros Poblacionales</span></summary>
                     <div class="dropdown-content">
+                        <div class="select-all-container">
+                            <label><input type="checkbox" id="select-all-poblacion" checked> (Seleccionar todo)</label>
+                        </div>
                         <div class="filter-list filter-group">
-                            <label><input type="checkbox" id="filtro-adulto" checked> Adulto Mayor</label>
-                            <label><input type="checkbox" id="filtro-juventud" checked> Juventud</label>
-                            <label><input type="checkbox" id="filtro-religion" checked> Religión / Culto</label>
+                            <label><input type="checkbox" class="chk-poblacion" id="filtro-adulto" checked> Adulto Mayor</label>
+                            <label><input type="checkbox" class="chk-poblacion" id="filtro-juventud" checked> Juventud</label>
+                            <label><input type="checkbox" class="chk-poblacion" id="filtro-religion" checked> Religión / Culto</label>
                         </div>
                     </div>
                 </details>
 
+                <!-- Desplegable: Barrios y Sectores -->
                 <details class="custom-dropdown" open>
-                    <summary>🏘️ Barrios y Sectores (125)</summary>
+                    <summary><span>🏘️ Barrios y Sectores (125)</span></summary>
                     <div class="dropdown-content">
+                        <div class="select-all-container">
+                            <label><input type="checkbox" id="select-all-barrios" checked> (Seleccionar todo)</label>
+                        </div>
                         <div id="barrios-checkbox-container" class="filter-list">
-                            <p style="font-size: 0.8rem; color: #888;">Cargando los 125 sectores...</p>
+                            <p style="font-size: 0.8rem; color: #888;">Cargando sectores...</p>
                         </div>
                     </div>
                 </details>
 
-                <div class="section-title">Ficha Territorial</div>
+                <div class="section-title">Ficha Informativa</div>
                 <div id="fichaDetalle" class="ficha-card">
-                    <p style="font-size: 0.85rem; color: #666; font-style: italic;">Haz clic en un sector del mapa o marca su casilla para ver su información detallada.</p>
+                    <p style="font-size: 0.82rem; color: #666; font-style: italic;">Selecciona un sector en el mapa para ver sus detalles.</p>
                 </div>
             </div>
         </sidebar>
@@ -232,17 +389,16 @@
         function inicializarSistemaMapa() {
             if (map) return;
 
-            // Inicializar mapa centrado en Facatativá
-            map = L.map('map').setView([4.8123, -74.3542], 14);
+            map = L.map('map', { zoomControl: false }).setView([4.8123, -74.3542], 14);
+            L.control.zoom({ position: 'topright' }).addTo(map);
 
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri &mdash; Fuente: Cartografía Territorial'
+                attribution: 'Tiles &copy; Esri &mdash; Cartografía Territorial'
             }).addTo(map);
 
-            // Carga del archivo barrios.geojson
             fetch('./barrios.geojson')
                 .then(response => {
-                    if (!response.ok) throw new Error('No se pudo encontrar el archivo barrios.geojson');
+                    if (!response.ok) throw new Error('No se pudo encontrar barrios.geojson');
                     return response.json();
                 })
                 .then(data => {
@@ -250,15 +406,14 @@
                     generarListaBarrios();
                     actualizarMapa();
 
-                    // Ajustar automáticamente el zoom para mostrar todos los 125 puntos en pantalla
                     if (geojsonLayer && geojsonLayer.getBounds().isValid()) {
-                        map.fitBounds(geojsonLayer.getBounds(), { padding: [50, 50] });
+                        map.fitBounds(geojsonLayer.getBounds(), { padding: [60, 60] });
                     }
                 })
                 .catch(error => {
                     console.error('Error cargando el GeoJSON:', error);
                     document.getElementById('barrios-checkbox-container').innerHTML = 
-                        '<p style="color: red; font-size: 0.8rem;">Error al cargar barrios.geojson. Usa Live Server en VS Code.</p>';
+                        '<p style="color: red; font-size: 0.8rem;">Error al cargar barrios.geojson. Usa Live Server.</p>';
                 });
 
             function obtenerNombreBarrio(feature, index) {
@@ -281,7 +436,7 @@
                     barriosFiltroEstado[nombreBarrio] = true;
 
                     const label = document.createElement('label');
-                    label.innerHTML = `<input type="checkbox" id="${idCheck}" data-nombre="${nombreBarrio}" checked> ${nombreBarrio}`;
+                    label.innerHTML = `<input type="checkbox" class="chk-barrio" id="${idCheck}" data-nombre="${nombreBarrio}" checked> ${nombreBarrio}`;
                     container.appendChild(label);
 
                     label.querySelector('input').addEventListener('change', function(e) {
@@ -290,7 +445,27 @@
                         actualizarMapa();
                     });
                 });
+
+                const selectAllBarrios = document.getElementById('select-all-barrios');
+                selectAllBarrios.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    document.querySelectorAll('.chk-barrio').forEach(chk => {
+                        chk.checked = isChecked;
+                        const bNombre = chk.getAttribute('data-nombre');
+                        barriosFiltroEstado[bNombre] = isChecked;
+                    });
+                    actualizarMapa();
+                });
             }
+
+            const selectAllPoblacion = document.getElementById('select-all-poblacion');
+            selectAllPoblacion.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.chk-poblacion').forEach(chk => {
+                    chk.checked = isChecked;
+                });
+                actualizarMapa();
+            });
 
             window.actualizarMapa = function() {
                 if (!datosOriginales) return;
@@ -333,9 +508,8 @@
                         const index = datosOriginales.features.indexOf(feature);
                         const nombreBarrio = obtenerNombreBarrio(feature, index);
 
-                        // Tooltip limpio para los 125 puntos
                         layer.bindTooltip(nombreBarrio, {
-                            permanent: false, // Oculto por defecto para evitar saturar el mapa con 125 nombres
+                            permanent: false,
                             direction: 'top',
                             className: 'leaflet-tooltip-barrio'
                         });
@@ -354,22 +528,19 @@
                             document.getElementById('fichaDetalle').innerHTML = `
                                 <h3>${nombreBarrio}</h3>
                                 <div class="ficha-item"><strong>Zona:</strong> ${p.comuna_zona || 'Facatativá'}</div>
-                                <div class="ficha-item"><strong>Altitud:</strong> ${p.altitud || 'No registrada'}</div>
-                                <div class="ficha-item"><strong>Observaciones:</strong> ${p.observaciones || 'Sin observaciones'}</div>
                                 <div class="ficha-item"><strong>Presidente JAC:</strong> ${p.jac_presidente || 'Por registrar'}</div>
                                 <div class="ficha-item"><strong>Líder Zonal:</strong> ${p.lider_zonal || 'Por registrar'}</div>
-                                <div class="ficha-item" style="margin-top:8px; padding-top:6px; border-top:1px solid #ddd;"><strong>🗳️ Puesto de Votación:</strong><br>${p.puesto_votacion || 'Por asignar'}</div>
+                                <div class="ficha-item" style="margin-top:8px; padding-top:6px; border-top:1px dashed #cbd5e0;"><strong>🗳️ Puesto de Votación:</strong><br>${p.puesto_votacion || 'Por asignar'}</div>
                             `;
                         });
                     }
                 }).addTo(map);
             }
 
-            document.querySelectorAll('.filter-group input[type="checkbox"]').forEach(checkbox => {
+            document.querySelectorAll('.chk-poblacion').forEach(checkbox => {
                 checkbox.addEventListener('change', actualizarMapa);
             });
 
-            // Buscador dual optimizado
             function realizarBusqueda() {
                 const query = document.getElementById('searchInput').value.trim();
                 if (!query) return;
