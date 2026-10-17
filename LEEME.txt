@@ -1,0 +1,26 @@
+TERRITORIO FACA - DEMOSTRACIÓN LOCAL
+
+Contenido:
+- index.html
+- barrios.geojson
+
+Cómo abrirlo:
+1. Descomprime toda la carpeta.
+2. Abre la carpeta en Visual Studio Code.
+3. Instala la extensión Live Server si aún no la tienes.
+4. Haz clic derecho en index.html y elige "Open with Live Server".
+5. No abras index.html directamente con doble clic: fetch() necesita un servidor local.
+6. Necesitas conexión a internet para descargar Leaflet y los mapas base de OpenStreetMap.
+
+Credenciales de demostración:
+Usuario: admin
+Contraseña: FacaDemo2026!
+
+SEGURIDAD:
+El acceso está simulado en JavaScript del navegador. No protege información real.
+No uses datos personales reales. Para uso real hay que implementar autenticación en servidor,
+permisos y controles de protección de datos.
+
+GEOGRAFÍA:
+El archivo GeoJSON contiene varios tipos de objetos. Esta versión muestra solo puntos
+etiquetados place=neighbourhood con nombre. Los marcadores no son límites oficiales de barrios.

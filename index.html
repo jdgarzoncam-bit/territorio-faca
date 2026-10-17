@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Territorio Faca — Inteligencia Territorial & Electoral</title>
     
-    <!-- Tipografía Inter (Google Fonts) -->
+    <!-- Tipografía Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -13,21 +13,23 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
+    <!-- SheetJS (Para exportar a Excel directamente desde el navegador) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <!-- Estilos Premium Dark Glassmorphism -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Iluminación Ambiental Flotante (Glows en Fondo) -->
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
 
-    <!-- Pantalla de Login Glassmorphism -->
+    <!-- Pantalla de Login -->
     <div id="login-overlay">
         <div class="login-card">
-            <div class="brand-badge">PLATAORMA OFICIAL</div>
+            <div class="brand-badge">PLATAFORMA OFICIAL</div>
             <h2>Territorio Faca</h2>
-            <p>Gestión Territorial y Análisis Electoral</p>
+            <p>Gestión Territorial y Auditoría Electoral</p>
             
             <div class="form-group">
                 <label for="username">Usuario Corporativo</label>
@@ -48,10 +50,9 @@
         </div>
     </div>
 
-    <!-- Contenedor Principal de la Aplicación -->
+    <!-- Contenedor Principal -->
     <div id="app-container">
         
-        <!-- Panel Lateral Flotante Premium Dark Glass -->
         <sidebar class="glass-panel">
             <div class="sidebar-header">
                 <div class="sidebar-header-icon">
@@ -59,14 +60,14 @@
                 </div>
                 <div>
                     <h1>Territorio Faca</h1>
-                    <p>Inteligencia Territorial</p>
+                    <p>Inteligencia Electoral</p>
                 </div>
             </div>
             
             <div class="sidebar-content">
                 <div class="section-title">Buscador Inteligente</div>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Ej. Calle 1, Carrera 3, Colegio...">
+                    <input type="text" id="searchInput" placeholder="Ciudadano, puesto o dirección...">
                     <button id="searchBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     </button>
@@ -100,8 +101,8 @@
                     </div>
                 </details>
 
-                <!-- Sección: Info Electoral (Puestos de Votación) -->
-                <details class="custom-dropdown">
+                <!-- Sección: Info Electoral (Puestos de Votación con Base Maestra) -->
+                <details class="custom-dropdown" open>
                     <summary>
                         <span>🗳️ Info Electoral (Puestos)</span>
                         <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
@@ -111,31 +112,13 @@
                             <label><input type="checkbox" id="select-all-puestos" checked> (Seleccionar todos)</label>
                         </div>
                         <div id="puestos-checkbox-container" class="filter-list">
-                            <!-- Se carga dinámicamente -->
-                        </div>
-                    </div>
-                </details>
-
-                <!-- Sección: Filtros Poblacionales -->
-                <details class="custom-dropdown">
-                    <summary>
-                        <span>👥 Filtros Poblacionales</span>
-                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-                    </summary>
-                    <div class="dropdown-content">
-                        <div class="select-all-container">
-                            <label><input type="checkbox" id="select-all-poblacion" checked> (Seleccionar todo)</label>
-                        </div>
-                        <div class="filter-list filter-group">
-                            <label><input type="checkbox" class="chk-poblacion" id="filtro-adulto" checked> Adulto Mayor</label>
-                            <label><input type="checkbox" class="chk-poblacion" id="filtro-juventud" checked> Juventud</label>
-                            <label><input type="checkbox" class="chk-poblacion" id="filtro-religion" checked> Religión / Culto</label>
+                            <!-- Carga dinámica -->
                         </div>
                     </div>
                 </details>
 
                 <!-- Sección: Barrios y Sectores -->
-                <details class="custom-dropdown" open>
+                <details class="custom-dropdown">
                     <summary>
                         <span>🏘️ Barrios y Sectores (125)</span>
                         <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
@@ -145,14 +128,14 @@
                             <label><input type="checkbox" id="select-all-barrios" checked> (Seleccionar todos)</label>
                         </div>
                         <div id="barrios-checkbox-container" class="filter-list">
-                            <p class="loading-text">Cargando mapa territorial...</p>
+                            <p class="loading-text">Cargando sectores...</p>
                         </div>
                     </div>
                 </details>
 
-                <div class="section-title">Ficha Informativa</div>
+                <div class="section-title">Ficha Electoral & Descarga</div>
                 <div id="fichaDetalle" class="ficha-card">
-                    <p class="placeholder-text">Selecciona un sector o puesto en el mapa para ver la información analítica.</p>
+                    <p class="placeholder-text">Selecciona un puesto de votación en el mapa o en el menú para ver votantes y descargar el Excel.</p>
                 </div>
             </div>
         </sidebar>
@@ -162,8 +145,6 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    
-    <!-- Lógica de Aplicación -->
     <script src="app.js"></script>
 </body>
 </html>

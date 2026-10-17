@@ -2,7 +2,7 @@
     --bg-main: #050817;
     --bg-secondary: #0B1530;
     --surface-elevated: rgba(20, 35, 70, 0.55);
-    --glass-bg: rgba(11, 21, 48, 0.78) !important;
+    --glass-bg: rgba(11, 21, 48, 0.82) !important;
     --glass-border: rgba(255, 255, 255, 0.16) !important;
     
     --primary-blue: #2563EB;
@@ -37,7 +37,6 @@ body {
     position: relative;
 }
 
-/* Fondo Glow Ambiental */
 .ambient-glow {
     position: absolute;
     border-radius: 50%;
@@ -45,30 +44,21 @@ body {
     pointer-events: none;
     z-index: 0;
 }
-.glow-1 {
-    top: -10%; left: -10%; width: 50vw; height: 50vw;
-    background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(5, 8, 23, 0) 70%);
-}
-.glow-2 {
-    bottom: -15%; right: -10%; width: 60vw; height: 60vw;
-    background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(5, 8, 23, 0) 70%);
-}
+.glow-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(5, 8, 23, 0) 70%); }
+.glow-2 { bottom: -15%; right: -10%; width: 60vw; height: 60vw; background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(5, 8, 23, 0) 70%); }
 
 #login-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(5, 8, 23, 0.82);
     backdrop-filter: blur(24px) saturate(140%);
-    -webkit-backdrop-filter: blur(24px) saturate(140%);
     display: flex; justify-content: center; align-items: center; z-index: 2000;
 }
 
 .login-card {
-    background: rgba(15, 25, 55, 0.75) !important;
+    background: rgba(15, 25, 55, 0.85) !important;
     backdrop-filter: blur(20px);
-    padding: 42px 36px;
-    border-radius: var(--radius-large);
-    border: 1px solid var(--glass-border);
-    width: 380px; text-align: center;
+    padding: 42px 36px; border-radius: var(--radius-large);
+    border: 1px solid var(--glass-border); width: 380px; text-align: center;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
@@ -96,12 +86,10 @@ body {
 
 #app-container { display: none; width: 100%; height: 100%; position: relative; z-index: 10; }
 
-/* Panel Lateral Glassmorphism Oscuro */
 sidebar {
-    position: absolute; top: 20px; left: 20px; bottom: 20px; width: 380px;
+    position: absolute; top: 20px; left: 20px; bottom: 20px; width: 400px;
     background: var(--glass-bg) !important;
     backdrop-filter: blur(20px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
     border-radius: var(--radius-large) !important;
     display: flex; flex-direction: column;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
@@ -110,7 +98,7 @@ sidebar {
 }
 
 .sidebar-header {
-    padding: 24px 22px 18px 22px; background: rgba(255, 255, 255, 0.03);
+    padding: 22px 20px 16px 20px; background: rgba(255, 255, 255, 0.03);
     display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--glass-border);
 }
 
@@ -123,16 +111,17 @@ sidebar {
 .sidebar-header h1 { font-size: 1.15rem; font-weight: 700; color: var(--text-main) !important; }
 .sidebar-header p { font-size: 0.78rem; color: var(--text-muted) !important; }
 
-.sidebar-content { padding: 18px 22px; overflow-y: auto; flex: 1; }
+.sidebar-content { padding: 18px 20px; overflow-y: auto; flex: 1; }
+.sidebar-content::-webkit-scrollbar { width: 5px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
 
-.section-title { font-size: 0.75rem; font-weight: 700; color: var(--cyan-glow) !important; text-transform: uppercase; margin-top: 18px; }
+.section-title { font-size: 0.75rem; font-weight: 700; color: var(--cyan-glow) !important; text-transform: uppercase; margin-top: 18px; margin-bottom: 10px; }
 
 .search-box {
     display: flex; margin-bottom: 16px; background: rgba(5, 8, 23, 0.6) !important;
     border: 1px solid var(--glass-border); border-radius: var(--radius-medium); padding: 4px;
 }
-
-.search-box input { flex: 1; padding: 10px 12px; border: none; background: transparent; color: var(--text-main) !important; outline: none; }
+.search-box input { flex: 1; padding: 10px 12px; border: none; background: transparent; color: var(--text-main) !important; outline: none; font-size: 0.88rem; }
 .search-box button { padding: 8px 14px; background: var(--primary-blue); color: white; border: none; border-radius: var(--radius-small); cursor: pointer; }
 
 details.custom-dropdown {
@@ -140,14 +129,12 @@ details.custom-dropdown {
     border: 1px solid var(--glass-border) !important;
     border-radius: var(--radius-medium) !important; margin-bottom: 12px; overflow: hidden;
 }
-
 details.custom-dropdown summary {
     background: rgba(255, 255, 255, 0.02) !important;
-    color: var(--text-main) !important; font-size: 0.88rem; font-weight: 600; padding: 13px 16px; cursor: pointer;
+    color: var(--text-main) !important; font-size: 0.88rem; font-weight: 600; padding: 12px 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
 }
-
-.dropdown-content { padding: 14px 16px; font-size: 0.85rem; color: var(--text-muted) !important; display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; }
-
+.dropdown-content { padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted) !important; display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
 .filter-list label { color: var(--text-muted) !important; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 
 .ficha-card {
@@ -155,9 +142,42 @@ details.custom-dropdown summary {
     border: 1px solid var(--glass-border) !important;
     border-radius: var(--radius-medium) !important; padding: 16px; margin-top: 10px;
 }
-
 .ficha-card h3 { font-size: 0.98rem; color: var(--cyan-glow) !important; margin-bottom: 10px; font-weight: 600; }
 .ficha-item { font-size: 0.83rem; margin-bottom: 6px; color: var(--text-muted) !important; }
 .ficha-item strong { color: var(--text-main) !important; }
+
+/* Botón de Descarga Excel Estilo Glass */
+.excel-download-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+    border: none;
+    border-radius: var(--radius-small);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+.excel-download-btn:hover {
+    background: linear-gradient(135deg, #10b981, #059669);
+    transform: translateY(-1px);
+}
+
+.leaflet-tooltip-barrio {
+    background: rgba(11, 21, 48, 0.95) !important;
+    border: 1px solid var(--cyan-glow) !important;
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
+    border-radius: 8px !important;
+    font-size: 0.78rem !important;
+}
 
 #map { width: 100%; height: 100%; z-index: 1; background: var(--bg-main) !important; }
