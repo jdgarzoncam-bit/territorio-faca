@@ -3,40 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Territorio Faca - Plataforma de Gestión Territorial y Electoral</title>
+    <title>Territorio Faca — Inteligencia Territorial & Electoral</title>
     
+    <!-- Tipografía Inter (Google Fonts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <!-- Archivo de Estilos Externo -->
+    <!-- Estilos Premium Dark Glassmorphism -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Pantalla de Login -->
+    <!-- Iluminación Ambiental Flotante (Glows en Fondo) -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Pantalla de Login Glassmorphism -->
     <div id="login-overlay">
         <div class="login-card">
+            <div class="brand-badge">PLATAORMA OFICIAL</div>
             <h2>Territorio Faca</h2>
-            <p>Plataforma de Gestión Territorial y Electoral</p>
+            <p>Gestión Territorial y Análisis Electoral</p>
+            
             <div class="form-group">
-                <label for="username">Usuario</label>
-                <input type="text" id="username" placeholder="Ej. admin">
+                <label for="username">Usuario Corporativo</label>
+                <input type="text" id="username" placeholder="Ej. admin" autocomplete="off">
             </div>
+            
             <div class="form-group">
                 <label for="password">Contraseña</label>
-                <input type="password" id="password" placeholder="Contraseña">
+                <input type="password" id="password" placeholder="••••••••">
             </div>
-            <button class="login-btn" id="loginBtn">Ingresar</button>
-            <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+            
+            <button class="login-btn" id="loginBtn">
+                <span>Ingresar al Sistema</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+            
+            <div class="login-error" id="loginError">Credenciales no válidas. Intente de nuevo.</div>
         </div>
     </div>
 
-    <!-- Contenedor Principal -->
+    <!-- Contenedor Principal de la Aplicación -->
     <div id="app-container">
-        <!-- Sidebar Flotante y Redondeado -->
-        <sidebar>
+        
+        <!-- Panel Lateral Flotante Premium Dark Glass -->
+        <sidebar class="glass-panel">
             <div class="sidebar-header">
-                <div class="sidebar-header-icon">🗺️</div>
+                <div class="sidebar-header-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                </div>
                 <div>
                     <h1>Territorio Faca</h1>
                     <p>Inteligencia Territorial</p>
@@ -46,16 +66,21 @@
             <div class="sidebar-content">
                 <div class="section-title">Buscador Inteligente</div>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Ej. Colegio, Calle 1, Alamos...">
-                    <button id="searchBtn">Buscar</button>
+                    <input type="text" id="searchInput" placeholder="Ej. Calle 1, Carrera 3, Colegio...">
+                    <button id="searchBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    </button>
                 </div>
 
                 <!-- Sección: Alcaldía / Secretarías -->
                 <details class="custom-dropdown">
-                    <summary><span>🏛️ Alcaldía (Secretarías)</span></summary>
+                    <summary>
+                        <span>🏛️ Alcaldía (Secretarías)</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
                     <div class="dropdown-content">
                         <div class="select-all-container">
-                            <label><input type="checkbox" id="select-all-secretarias" checked> (Seleccionar todo)</label>
+                            <label><input type="checkbox" id="select-all-secretarias" checked> (Seleccionar todas)</label>
                         </div>
                         <div class="filter-list filter-group">
                             <label><input type="checkbox" class="chk-sec" id="sec-general" checked> Secretaría General</label>
@@ -75,22 +100,28 @@
                     </div>
                 </details>
 
-                <!-- Sección: Info Electoral con los 16 Puestos de Votación -->
+                <!-- Sección: Info Electoral (Puestos de Votación) -->
                 <details class="custom-dropdown">
-                    <summary><span>🗳️ Info Electoral (Puestos)</span></summary>
+                    <summary>
+                        <span>🗳️ Info Electoral (Puestos)</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
                     <div class="dropdown-content">
                         <div class="select-all-container">
-                            <label><input type="checkbox" id="select-all-puestos" checked> (Seleccionar todo)</label>
+                            <label><input type="checkbox" id="select-all-puestos" checked> (Seleccionar todos)</label>
                         </div>
                         <div id="puestos-checkbox-container" class="filter-list">
-                            <!-- Se genera dinámicamente desde app.js -->
+                            <!-- Se carga dinámicamente -->
                         </div>
                     </div>
                 </details>
 
-                <!-- Desplegable independiente: Filtros Poblacionales -->
+                <!-- Sección: Filtros Poblacionales -->
                 <details class="custom-dropdown">
-                    <summary><span>👥 Filtros Poblacionales</span></summary>
+                    <summary>
+                        <span>👥 Filtros Poblacionales</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
                     <div class="dropdown-content">
                         <div class="select-all-container">
                             <label><input type="checkbox" id="select-all-poblacion" checked> (Seleccionar todo)</label>
@@ -103,22 +134,25 @@
                     </div>
                 </details>
 
-                <!-- Desplegable independiente: Barrios y Sectores -->
+                <!-- Sección: Barrios y Sectores -->
                 <details class="custom-dropdown" open>
-                    <summary><span>🏘️ Barrios y Sectores (125)</span></summary>
+                    <summary>
+                        <span>🏘️ Barrios y Sectores (125)</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
                     <div class="dropdown-content">
                         <div class="select-all-container">
-                            <label><input type="checkbox" id="select-all-barrios" checked> (Seleccionar todo)</label>
+                            <label><input type="checkbox" id="select-all-barrios" checked> (Seleccionar todos)</label>
                         </div>
                         <div id="barrios-checkbox-container" class="filter-list">
-                            <p style="font-size: 0.8rem; color: #888;">Cargando sectores...</p>
+                            <p class="loading-text">Cargando mapa territorial...</p>
                         </div>
                     </div>
                 </details>
 
-                <div class="section-title">Ficha Informativa / Cercanía</div>
+                <div class="section-title">Ficha Informativa</div>
                 <div id="fichaDetalle" class="ficha-card">
-                    <p style="font-size: 0.82rem; color: #666; font-style: italic;">Selecciona un sector o puesto de votación para ver sus detalles.</p>
+                    <p class="placeholder-text">Selecciona un sector o puesto en el mapa para ver la información analítica.</p>
                 </div>
             </div>
         </sidebar>
@@ -129,7 +163,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
-    <!-- Archivo de Lógica Externo -->
+    <!-- Lógica de Aplicación -->
     <script src="app.js"></script>
 </body>
 </html>
