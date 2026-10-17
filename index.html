@@ -46,11 +46,11 @@
             <div class="sidebar-content">
                 <div class="section-title">Buscador Inteligente</div>
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Dirección, barrio o lugar...">
+                    <input type="text" id="searchInput" placeholder="Ej. Colegio, Calle 1, Alamos...">
                     <button id="searchBtn">Buscar</button>
                 </div>
 
-                <!-- NUEVA SECCIÓN: Alcaldía / Secretarías -->
+                <!-- Sección: Alcaldía / Secretarías -->
                 <details class="custom-dropdown">
                     <summary><span>🏛️ Alcaldía (Secretarías)</span></summary>
                     <div class="dropdown-content">
@@ -58,19 +58,33 @@
                             <label><input type="checkbox" id="select-all-secretarias" checked> (Seleccionar todo)</label>
                         </div>
                         <div class="filter-list filter-group">
-                            <label><input type="checkbox" class="chk-sec" id="sec-gobierno" checked> Secretaría de Gobierno</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-desarrollo" checked> Secretaría de Desarrollo Económico</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-general" checked> Secretaría General</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-gobierno" checked> Secretaría de Gobierno y Convivencia</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-hacienda" checked> Secretaría de Hacienda</label>
                             <label><input type="checkbox" class="chk-sec" id="sec-planeacion" checked> Secretaría de Planeación</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-obras" checked> Secretaría de Obras Públicas</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-social" checked> Secretaría de Desarrollo Social</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-educacion" checked> Secretaría de Educación</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-salud" checked> Secretaría de Salud</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-cultura" checked> Secretaría de Cultura y Juventud</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-agropecuario" checked> Secretaría de Desarrollo Agropecuario</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-desarrollo" checked> Secretaría de Desarrollo Económico</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-social" checked> Secretaría de Desarrollo e Integración Social</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-juridica" checked> Secretaría Jurídica</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-movilidad" checked> Secretaría de Movilidad / Tránsito</label>
+                            <label><input type="checkbox" class="chk-sec" id="sec-obras" checked> Secretaría de Obras / Infraestructura</label>
                         </div>
                     </div>
                 </details>
 
+                <!-- Sección: Info Electoral con los 16 Puestos de Votación -->
                 <details class="custom-dropdown">
-                    <summary><span>🗳️ Info Electoral</span></summary>
+                    <summary><span>🗳️ Info Electoral (Puestos)</span></summary>
                     <div class="dropdown-content">
-                        <p style="font-size: 0.82rem;"><strong>Gestión de Puestos:</strong> Haz clic en un sector en el mapa para consultar el puesto de votación y las mesas asignadas.</p>
+                        <div class="select-all-container">
+                            <label><input type="checkbox" id="select-all-puestos" checked> (Seleccionar todo)</label>
+                        </div>
+                        <div id="puestos-checkbox-container" class="filter-list">
+                            <!-- Se genera dinámicamente desde app.js -->
+                        </div>
                     </div>
                 </details>
 
@@ -104,7 +118,7 @@
 
                 <div class="section-title">Ficha Informativa / Cercanía</div>
                 <div id="fichaDetalle" class="ficha-card">
-                    <p style="font-size: 0.82rem; color: #666; font-style: italic;">Selecciona un sector o busca una dirección para ver detalles y elementos cercanos.</p>
+                    <p style="font-size: 0.82rem; color: #666; font-style: italic;">Selecciona un sector o puesto de votación para ver sus detalles.</p>
                 </div>
             </div>
         </sidebar>
