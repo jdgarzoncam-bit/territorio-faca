@@ -48,6 +48,52 @@ document.getElementById('password').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') validarAcceso();
 });
 
+// Lógica de Retracción del Menú Lateral con el botón integrado en la cabecera
+document.getElementById('sidebarToggleBtn').addEventListener('click', function() {
+    const sidebar = document.getElementById('mainSidebar');
+    sidebar.classList.toggle('collapsed');
+    
+    // Si se contrae, podemos crear un botón flotante temporal o simplemente dejar que se despliegue de nuevo
+    // Nota: Cuando está contraído, añadiremos un botón flotante en pantalla para poder reabrirlo fácilmente.
+    manejarBotonFlotanteReapertura(sidebar.classList.contains('collapsed'));
+
+    setTimeout(() => {
+        if (map) map.invalidateSize();
+    }, 350);
+});
+
+function manejarBotonFlotanteReapertura(estaContraido) {
+    let floatBtn = document.getElementById('floatingReopenBtn');
+    if (estaContraido) {
+        if (!floatBtn) {
+            floatBtn = document.createElement('button');
+            floatBtn.id = 'floatingReopenBtn';
+            floatBtn.title = 'Mostrar Menú';
+            floatBtn.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 6h18M3 18h18"/></svg>`;
+            floatBtn.style.cssText = `
+                position: fixed; top: 20px; left: 20px; width: 48px; height: 48px;
+                background: linear-gradient(135deg, rgba(37, 99, 235, 0.85), rgba(11, 21, 48, 0.95));
+                backdrop-filter: blur(16px); border: 1px solid var(--cyan-glow);
+                border-radius: 16px; color: var(--cyan-glow); display: flex;
+                align-items: center; justify-content: center; cursor: pointer; z-index: 1500;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.4);
+                transition: all 0.3s ease;
+            `;
+            floatBtn.addEventListener('click', function() {
+                const sidebar = document.getElementById('mainSidebar');
+                sidebar.classList.remove('collapsed');
+                floatBtn.remove();
+                setTimeout(() => { if (map) map.invalidateSize(); }, 350);
+            });
+            document.body.appendChild(floatBtn);
+        } else {
+            floatBtn.style.display = 'flex';
+        }
+    } else {
+        if (floatBtn) floatBtn.style.display = 'none';
+    }
+}
+
 function inicializarSistemaMapa() {
     if (map) return;
 
@@ -62,17 +108,6 @@ function inicializarSistemaMapa() {
     puestosLayerGroup.addTo(map);
     searchMarkersGroup.addTo(map);
     miraMarkersGroup.addTo(map);
-
-    // Control del menú responsive en móviles
-    const toggleBtn = document.getElementById('sidebarToggleMobile');
-    const sidebarPanel = document.getElementById('sidebarPanel');
-
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-            sidebarPanel.classList.toggle('mobile-open');
-            setTimeout(() => { if (map) map.invalidateSize(); }, 300);
-        });
-    }
 
     // Cargar base de electores convertida desde Excel
     fetch('./electores_2.json')
@@ -196,10 +231,6 @@ function inicializarSistemaMapa() {
             marker.on('click', function() {
                 map.setView([puesto.lat, puesto.lon], 16);
                 mostrarFichaPuesto(puesto, votantesPuesto);
-                if (window.innerWidth <= 768 && sidebarPanel.classList.contains('mobile-open')) {
-                    sidebarPanel.classList.remove('mobile-open');
-                    setTimeout(() => map.invalidateSize(), 300);
-                }
             });
 
             puestosLayerGroup.addLayer(marker);
@@ -259,7 +290,7 @@ function inicializarSistemaMapa() {
     }
 
     /* ==========================================================================
-       LÓGICA DEL MÓDULO InfoMIRA
+       LÓGICA DEL MÓDULO InfoMIRA (FILTRO DE CUIDADOR Y ESTADO)
        ========================================================================== */
     function inicializarModuloInfoMIRA() {
         const inputCuidador = document.getElementById('cuidadorSearchInput');
@@ -340,10 +371,6 @@ function inicializarSistemaMapa() {
                     marker.on('click', function() {
                         map.setView([puesto.lat, puesto.lon], 16);
                         mostrarFichaPuesto(puesto, votantesRedPuesto);
-                        if (window.innerWidth <= 768 && sidebarPanel.classList.contains('mobile-open')) {
-                            sidebarPanel.classList.remove('mobile-open');
-                            setTimeout(() => map.invalidateSize(), 300);
-                        }
                     });
 
                     miraMarkersGroup.addLayer(marker);
@@ -355,12 +382,6 @@ function inicializarSistemaMapa() {
             }
 
             mostrarFichaRedInfoMIRA(queryCuidador, estadoFiltro, redEncontrada, puestosAfectados);
-
-            // Ocultar menú automáticamente en móviles al buscar para ver el mapa
-            if (window.innerWidth <= 768) {
-                sidebarPanel.classList.remove('mobile-open');
-                setTimeout(() => map.invalidateSize(), 300);
-            }
         }
 
         function mostrarFichaRedInfoMIRA(query, estado, redTotal, puestosAfectados) {
@@ -474,10 +495,6 @@ function inicializarSistemaMapa() {
             map.setView([puestoEncontrado.lat, puestoEncontrado.lon], 16);
             const votantesPuesto = baseVotantes.filter(v => v['PUESTO DE VOTACION'] && v['PUESTO DE VOTACION'].trim().toUpperCase() === puestoEncontrado.matchName);
             mostrarFichaPuesto(puestoEncontrado, votantesPuesto);
-            if (window.innerWidth <= 768) {
-                document.getElementById('sidebarPanel').classList.remove('mobile-open');
-                setTimeout(() => map.invalidateSize(), 300);
-            }
             return;
         }
 
@@ -488,10 +505,6 @@ function inicializarSistemaMapa() {
                 map.setView([matchPuesto.lat, matchPuesto.lon], 16);
                 const votantesPuesto = baseVotantes.filter(v => v['PUESTO DE VOTACION'] === ciudadanoEncontrado['PUESTO DE VOTACION']);
                 mostrarFichaPuesto(matchPuesto, votantesPuesto);
-                if (window.innerWidth <= 768) {
-                    document.getElementById('sidebarPanel').classList.remove('mobile-open');
-                    setTimeout(() => map.invalidateSize(), 300);
-                }
                 alert(`Ciudadano encontrado: ${ciudadanoEncontrado.NOMBRE} (Puesto: ${matchPuesto.nombre}, Mesa: ${ciudadanoEncontrado.MESA || 'S/N'})`);
                 return;
             }
