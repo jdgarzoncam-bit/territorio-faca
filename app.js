@@ -4,6 +4,7 @@ let datosOriginales = null;
 let baseVotantes = [];
 let puestosLayerGroup = L.layerGroup();
 let searchMarkersGroup = L.layerGroup();
+let miraMarkersGroup = L.layerGroup();
 let capaSeleccionada = null;
 let barriosFiltroEstado = {};
 let puestosFiltroEstado = {};
@@ -60,16 +61,19 @@ function inicializarSistemaMapa() {
 
     puestosLayerGroup.addTo(map);
     searchMarkersGroup.addTo(map);
+    miraMarkersGroup.addTo(map);
 
     // Cargar base de electores convertida desde Excel
-    fetch('./electores.json')
+    fetch('./electores_2.json')
         .then(res => res.json())
+        .catch(() => fetch('./electores.json').then(res => res.json()))
         .then(data => {
-            baseVotantes = data;
+            baseVotantes = data || [];
             generarListaPuestos();
             cargarPuestosEnMapa();
+            inicializarModuloInfoMIRA();
         })
-        .catch(err => console.log("Nota: Asegúrate de tener electores.json en la carpeta del proyecto."));
+        .catch(err => console.log("Nota: Asegúrate de tener electores_2.json o electores.json en la carpeta del proyecto."));
 
     fetch('./barrios.geojson')
         .then(response => response.json())
@@ -222,12 +226,13 @@ function inicializarSistemaMapa() {
 
         const datosExportar = votantes.map((v, index) => ({
             "N.º": index + 1,
-            "Documento": v.Documento || "",
+            "Documento": v.Documento || v.CEDULA || "",
             "Nombre Completo": v.NOMBRE || "",
             "Puesto de Votación": v['PUESTO DE VOTACION'] || puesto.nombre,
             "Mesa": v.MESA || "S/N",
             "Barrio": v.Barrio || "",
-            "Líder / Cuidador": v.cuidador || "",
+            "Líder / Cuidador": v.cuidador || v.CUIDADOR || v.LIDER || "",
+            "Estado / Rol": v.Estado || v.ESTADO || v.ROL || "REFERIDO",
             "Teléfono": v['Teléfono / s'] || v.Teléfono || ""
         }));
 
@@ -236,6 +241,182 @@ function inicializarSistemaMapa() {
         XLSX.utils.book_append_sheet(workbook, worksheet, "Votantes Puesto");
 
         XLSX.writeFile(workbook, `Reporte_Votantes_${puesto.nombre.replace(/\s+/g, '_')}.xlsx`);
+    }
+
+    /* ==========================================================================
+       LÓGICA DEL MÓDULO InfoMIRA (FILTRO DE CUIDADOR Y ESTADO)
+       ========================================================================== */
+    function inicializarModuloInfoMIRA() {
+        const inputCuidador = document.getElementById('cuidadorSearchInput');
+        const btnBuscarMira = document.getElementById('miraSearchBtn');
+        const selectEstado = document.getElementById('miraEstadoSelect');
+        const btnResetMira = document.getElementById('miraResetBtn');
+
+        function aplicarFiltroInfoMIRA() {
+            const queryCuidador = inputCuidador.value.trim().toLowerCase();
+            const estadoFiltro = selectEstado.value.toUpperCase();
+
+            if (!queryCuidador && estadoFiltro === 'TODOS') {
+                miraMarkersGroup.clearLayers();
+                puestosLayerGroup.addTo(map);
+                return;
+            }
+
+            // Filtrar electores en la base
+            const redEncontrada = baseVotantes.filter(v => {
+                const cuidador = (v.cuidador || v.CUIDADOR || v.LIDER || '').toString().toLowerCase();
+                const docCuidador = (v.cedula_cuidador || v.DOC_CUIDADOR || '').toString().toLowerCase();
+                const nombrePropio = (v.NOMBRE || '').toString().toLowerCase();
+                const docPropio = (v.Documento || v.CEDULA || '').toString().toLowerCase();
+                const estadoVal = (v.Estado || v.ESTADO || v.ROL || 'REFERIDO').toString().toUpperCase();
+
+                const coincideCuidador = !queryCuidador || 
+                    cuidador.includes(queryCuidador) || 
+                    docCuidador.includes(queryCuidador) ||
+                    nombrePropio.includes(queryCuidador) ||
+                    docPropio.includes(queryCuidador);
+
+                const coincideEstado = (estadoFiltro === 'TODOS') || estadoVal.includes(estadoFiltro);
+
+                return coincideCuidador && coincideEstado;
+            });
+
+            if (redEncontrada.length === 0) {
+                alert("No se encontraron registros para la red de apoyo o filtro especificado.");
+                return;
+            }
+
+            // Ocultar capa general de puestos y aislar red en el mapa
+            puestosLayerGroup.remove();
+            miraMarkersGroup.clearLayers();
+
+            let puestosAfectados = {};
+            redEncontrada.forEach(v => {
+                const pNombre = (v['PUESTO DE VOTACION'] || '').trim().toUpperCase();
+                if (!puestosAfectados[pNombre]) puestosAfectados[pNombre] = [];
+                puestosAfectados[pNombre].push(v);
+            });
+
+            let bounds = [];
+
+            listaPuestosVotacion.forEach(puesto => {
+                const votantesRedPuesto = puestosAfectados[puesto.matchName];
+                if (votantesRedPuesto && votantesRedPuesto.length > 0) {
+                    bounds.push([puesto.lat, puesto.lon]);
+
+                    const pinMiraIcon = L.divIcon({
+                        className: 'custom-pin-mira-wrapper',
+                        html: `
+                            <div style="position: relative; width: 46px; height: 54px; display: flex; align-items: center; justify-content: center; cursor: pointer; filter: drop-shadow(0px 8px 18px rgba(56, 189, 248, 0.9));">
+                                <svg width="46" height="54" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M50 0 C22.4 0 0 22.4 0 50 C0 80 50 120 50 120 C50 120 100 80 100 50 C100 22.4 77.6 0 50 0 Z" fill="#2563EB"/>
+                                    <circle cx="50" cy="46" r="32" fill="#050817" stroke="#38BDF8" stroke-width="4"/>
+                                </svg>
+                                <span style="position: absolute; top: 12px; font-size: 16px;">💙</span>
+                            </div>
+                        `,
+                        iconSize: [46, 54],
+                        iconAnchor: [23, 54]
+                    });
+
+                    const marker = L.marker([puesto.lat, puesto.lon], { icon: pinMiraIcon });
+                    marker.bindTooltip(`Red InfoMIRA: ${votantesRedPuesto.length} asignados en ${puesto.nombre}`, {
+                        permanent: false, direction: 'top', className: 'leaflet-tooltip-barrio'
+                    });
+
+                    marker.on('click', function() {
+                        map.setView([puesto.lat, puesto.lon], 16);
+                        mostrarFichaPuesto(puesto, votantesRedPuesto);
+                    });
+
+                    miraMarkersGroup.addLayer(marker);
+                }
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+
+            // Mostrar detalle completo en la ficha inferior con scroll interno
+            mostrarFichaRedInfoMIRA(queryCuidador, estadoFiltro, redEncontrada, puestosAfectados);
+        }
+
+        function mostrarFichaRedInfoMIRA(query, estado, redTotal, puestosAfectados) {
+            const nombreLider = query ? query.toUpperCase() : "GENERAL";
+            const numPuestos = Object.keys(puestosAfectados).length;
+
+            let htmlDetalleIntegrantes = redTotal.map((v, i) => `
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 0.85rem;">${i + 1}. ${v.NOMBRE || 'Sin Nombre'}</span>
+                        <span style="font-size: 0.7rem; padding: 2px 6px; background: rgba(56, 189, 248, 0.15); color: var(--cyan-glow); border-radius: 4px; font-weight: 600;">
+                            ${v.Estado || v.ESTADO || v.ROL || 'REFERIDO'}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px;">
+                        <div><strong>Doc:</strong> ${v.Documento || v.CEDULA || 'N/A'}</div>
+                        <div><strong>Tel:</strong> ${v['Teléfono / s'] || v.Teléfono || 'N/A'}</div>
+                        <div><strong>Puesto:</strong> ${v['PUESTO DE VOTACION'] || 'Sin Asignar'}</div>
+                        <div><strong>Mesa:</strong> ${v.MESA || 'S/N'}</div>
+                        <div style="grid-column: span 2;"><strong>Barrio:</strong> ${v.Barrio || 'N/A'}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('fichaDetalle').innerHTML = `
+                <h3>💙 Red InfoMIRA — ${nombreLider}</h3>
+                <div class="ficha-item"><strong>Filtro Estado:</strong> ${estado}</div>
+                <div class="ficha-item" style="color: var(--cyan-glow); font-weight: 600; margin-top: 2px;">
+                    Integrantes en Red: ${redTotal.length} persona(s)
+                </div>
+                <div class="ficha-item" style="margin-bottom: 6px;"><strong>Puestos con Cobertura:</strong> ${numPuestos} puesto(s)</div>
+                
+                <!-- Contenedor con Scroll para ver todos los datos tipo Excel -->
+                <div style="max-height: 180px; overflow-y: auto; padding-right: 4px; margin-top: 8px; margin-bottom: 8px;">
+                    ${htmlDetalleIntegrantes}
+                </div>
+
+                <button id="downloadExcelRedBtn" class="excel-download-btn">
+                    📥 Exportar Red InfoMIRA a Excel (${redTotal.length})
+                </button>
+            `;
+
+            document.getElementById('downloadExcelRedBtn').addEventListener('click', function() {
+                const datosExportar = redTotal.map((v, index) => ({
+                    "N.º": index + 1,
+                    "Documento": v.Documento || v.CEDULA || "",
+                    "Nombre Completo": v.NOMBRE || "",
+                    "Cuidador / Líder": v.cuidador || v.CUIDADOR || v.LIDER || nombreLider,
+                    "Estado / Rol": v.Estado || v.ESTADO || v.ROL || "REFERIDO",
+                    "Puesto de Votación": v['PUESTO DE VOTACION'] || "",
+                    "Mesa": v.MESA || "S/N",
+                    "Barrio": v.Barrio || "",
+                    "Teléfono": v['Teléfono / s'] || v.Teléfono || ""
+                }));
+
+                const worksheet = XLSX.utils.json_to_sheet(datosExportar);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Red InfoMIRA");
+                XLSX.writeFile(workbook, `Red_InfoMIRA_${nombreLider.replace(/\s+/g, '_')}.xlsx`);
+            });
+        }
+
+        btnBuscarMira.addEventListener('click', aplicarFiltroInfoMIRA);
+        inputCuidador.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') aplicarFiltroInfoMIRA();
+        });
+        selectEstado.addEventListener('change', aplicarFiltroInfoMIRA);
+
+        btnResetMira.addEventListener('click', function() {
+            inputCuidador.value = '';
+            selectEstado.value = 'TODOS';
+            miraMarkersGroup.clearLayers();
+            puestosLayerGroup.addTo(map);
+            document.getElementById('fichaDetalle').innerHTML = `
+                <p class="placeholder-text">Selecciona un puesto de votación en el mapa o en el menú para ver votantes y descargar el Excel.</p>
+            `;
+            map.setView([4.8123, -74.3542], 14);
+        });
     }
 
     window.actualizarMapa = function() {
@@ -267,7 +448,7 @@ function inicializarSistemaMapa() {
 
         searchMarkersGroup.clearLayers();
 
-        const puestoEncontrado = listaPuestosVotacion.get ? null : listaPuestosVotacion.find(p => p.nombre.toLowerCase().includes(query) || p.direccion.toLowerCase().includes(query));
+        const puestoEncontrado = listaPuestosVotacion.find(p => p.nombre.toLowerCase().includes(query) || p.direccion.toLowerCase().includes(query));
         if (puestoEncontrado) {
             map.setView([puestoEncontrado.lat, puestoEncontrado.lon], 16);
             const votantesPuesto = baseVotantes.filter(v => v['PUESTO DE VOTACION'] && v['PUESTO DE VOTACION'].trim().toUpperCase() === puestoEncontrado.matchName);

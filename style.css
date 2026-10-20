@@ -134,8 +134,79 @@ details.custom-dropdown summary {
     color: var(--text-main) !important; font-size: 0.88rem; font-weight: 600; padding: 12px 14px; cursor: pointer;
     display: flex; align-items: center; justify-content: space-between;
 }
-.dropdown-content { padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted) !important; display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
+.dropdown-content { padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted) !important; display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
 .filter-list label { color: var(--text-muted) !important; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+
+/* ESTILOS ESPECÍFICOS MÓDULO INFOMIRA (GLASSMORPHISM INTEGRADO) */
+.mira-filter-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.mira-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cyan-glow) !important;
+}
+.mira-input-group {
+    display: flex;
+    gap: 6px;
+    background: rgba(5, 8, 23, 0.6) !important;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-small);
+    padding: 3px;
+}
+.mira-input-group input {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-main) !important;
+    font-size: 0.82rem;
+    outline: none;
+}
+.mira-input-group button {
+    padding: 6px 12px;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.mira-select {
+    width: 100%;
+    padding: 8px 10px;
+    background: rgba(5, 8, 23, 0.8) !important;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-small);
+    color: var(--text-main) !important;
+    font-size: 0.82rem;
+    outline: none;
+}
+.mira-select option {
+    background: var(--bg-secondary);
+    color: var(--text-main);
+}
+.mira-reset-btn {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-small);
+    color: var(--text-muted) !important;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.mira-reset-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-main) !important;
+}
 
 .ficha-card {
     background: rgba(255, 255, 255, 0.05) !important;
