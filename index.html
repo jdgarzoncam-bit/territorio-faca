@@ -53,7 +53,12 @@
     <!-- Contenedor Principal -->
     <div id="app-container">
         
-        <sidebar class="glass-panel">
+        <!-- Botón flotante exclusivo para móviles / pantallas pequeñas -->
+        <button id="sidebarToggleMobile" title="Abrir Menú de Control">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+
+        <sidebar class="glass-panel" id="sidebarPanel">
             <div class="sidebar-header">
                 <div class="sidebar-header-icon">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
@@ -101,7 +106,7 @@
                     </div>
                 </details>
 
-                <!-- NUEVO MÓDULO: InfoMIRA -->
+                <!-- MÓDULO: InfoMIRA -->
                 <details class="custom-dropdown" id="dropdown-infomira">
                     <summary>
                         <span>💙 InfoMIRA (Red de Cuidador/Líder)</span>

@@ -2,7 +2,7 @@
     --bg-main: #050817;
     --bg-secondary: #0B1530;
     --surface-elevated: rgba(20, 35, 70, 0.55);
-    --glass-bg: rgba(11, 21, 48, 0.82) !important;
+    --glass-bg: rgba(11, 21, 48, 0.88) !important;
     --glass-border: rgba(255, 255, 255, 0.16) !important;
     
     --primary-blue: #2563EB;
@@ -31,6 +31,7 @@
 body {
     display: flex;
     height: 100vh;
+    width: 100vw;
     background-color: var(--bg-main) !important;
     color: var(--text-main) !important;
     overflow: hidden;
@@ -49,16 +50,17 @@ body {
 
 #login-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(5, 8, 23, 0.82);
+    background: rgba(5, 8, 23, 0.88);
     backdrop-filter: blur(24px) saturate(140%);
-    display: flex; justify-content: center; align-items: center; z-index: 2000;
+    display: flex; justify-content: center; align-items: center; z-index: 3000;
+    padding: 20px;
 }
 
 .login-card {
-    background: rgba(15, 25, 55, 0.85) !important;
+    background: rgba(15, 25, 55, 0.9) !important;
     backdrop-filter: blur(20px);
-    padding: 42px 36px; border-radius: var(--radius-large);
-    border: 1px solid var(--glass-border); width: 380px; text-align: center;
+    padding: 40px 30px; border-radius: var(--radius-large);
+    border: 1px solid var(--glass-border); width: 100%; max-width: 380px; text-align: center;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
@@ -76,7 +78,7 @@ body {
 .form-group input {
     width: 100%; padding: 12px 16px; border: 1px solid var(--glass-border);
     border-radius: var(--radius-medium); background: rgba(5, 8, 23, 0.6) !important;
-    color: var(--text-main) !important; outline: none;
+    color: var(--text-main) !important; outline: none; font-size: 0.95rem;
 }
 
 .login-btn {
@@ -86,6 +88,26 @@ body {
 
 #app-container { display: none; width: 100%; height: 100%; position: relative; z-index: 10; }
 
+/* Botón flotante para dispositivos móviles para alternar el menú */
+#sidebarToggleMobile {
+    display: none;
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 2500;
+    width: 46px;
+    height: 46px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-medium);
+    color: var(--cyan-glow);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(16px);
+}
+
 sidebar {
     position: absolute; top: 20px; left: 20px; bottom: 20px; width: 400px;
     background: var(--glass-bg) !important;
@@ -94,7 +116,8 @@ sidebar {
     display: flex; flex-direction: column;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
     border: 1px solid var(--glass-border) !important;
-    z-index: 1000; overflow: hidden;
+    z-index: 2000; overflow: hidden;
+    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .sidebar-header {
@@ -105,7 +128,7 @@ sidebar {
 .sidebar-header-icon {
     width: 42px; height: 42px; background: rgba(56, 189, 248, 0.12);
     border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-medium);
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
 .sidebar-header h1 { font-size: 1.15rem; font-weight: 700; color: var(--text-main) !important; }
@@ -137,76 +160,25 @@ details.custom-dropdown summary {
 .dropdown-content { padding: 12px 14px; font-size: 0.85rem; color: var(--text-muted) !important; display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
 .filter-list label { color: var(--text-muted) !important; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
 
-/* ESTILOS ESPECÍFICOS MÓDULO INFOMIRA (GLASSMORPHISM INTEGRADO) */
-.mira-filter-box {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.mira-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--cyan-glow) !important;
-}
+/* ESTILOS ESPECÍFICOS MÓDULO INFOMIRA */
+.mira-filter-box { display: flex; flex-direction: column; gap: 6px; }
+.mira-label { font-size: 0.75rem; font-weight: 600; color: var(--cyan-glow) !important; }
 .mira-input-group {
-    display: flex;
-    gap: 6px;
-    background: rgba(5, 8, 23, 0.6) !important;
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-small);
-    padding: 3px;
+    display: flex; gap: 6px; background: rgba(5, 8, 23, 0.6) !important;
+    border: 1px solid var(--glass-border); border-radius: var(--radius-small); padding: 3px;
 }
-.mira-input-group input {
-    flex: 1;
-    padding: 8px 10px;
-    border: none;
-    background: transparent;
-    color: var(--text-main) !important;
-    font-size: 0.82rem;
-    outline: none;
-}
-.mira-input-group button {
-    padding: 6px 12px;
-    background: var(--primary-blue);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+.mira-input-group input { flex: 1; padding: 8px 10px; border: none; background: transparent; color: var(--text-main) !important; font-size: 0.82rem; outline: none; }
+.mira-input-group button { padding: 6px 12px; background: var(--primary-blue); color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .mira-select {
-    width: 100%;
-    padding: 8px 10px;
-    background: rgba(5, 8, 23, 0.8) !important;
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-small);
-    color: var(--text-main) !important;
-    font-size: 0.82rem;
-    outline: none;
+    width: 100%; padding: 8px 10px; background: rgba(5, 8, 23, 0.8) !important;
+    border: 1px solid var(--glass-border); border-radius: var(--radius-small); color: var(--text-main) !important; font-size: 0.82rem; outline: none;
 }
-.mira-select option {
-    background: var(--bg-secondary);
-    color: var(--text-main);
-}
+.mira-select option { background: var(--bg-secondary); color: var(--text-main); }
 .mira-reset-btn {
-    width: 100%;
-    margin-top: 6px;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-small);
-    color: var(--text-muted) !important;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    width: 100%; margin-top: 6px; padding: 8px; background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--glass-border); border-radius: var(--radius-small); color: var(--text-muted) !important; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
 }
-.mira-reset-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: var(--text-main) !important;
-}
+.mira-reset-btn:hover { background: rgba(255, 255, 255, 0.15); color: var(--text-main) !important; }
 
 .ficha-card {
     background: rgba(255, 255, 255, 0.05) !important;
@@ -217,38 +189,46 @@ details.custom-dropdown summary {
 .ficha-item { font-size: 0.83rem; margin-bottom: 6px; color: var(--text-muted) !important; }
 .ficha-item strong { color: var(--text-main) !important; }
 
-/* Botón de Descarga Excel Estilo Glass */
 .excel-download-btn {
-    width: 100%;
-    margin-top: 12px;
-    padding: 10px;
-    background: linear-gradient(135deg, #059669, #047857);
-    color: white;
-    border: none;
-    border-radius: var(--radius-small);
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
+    width: 100%; margin-top: 12px; padding: 10px;
+    background: linear-gradient(135deg, #059669, #047857); color: white;
+    border: none; border-radius: var(--radius-small); font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
-.excel-download-btn:hover {
-    background: linear-gradient(135deg, #10b981, #059669);
-    transform: translateY(-1px);
-}
+.excel-download-btn:hover { background: linear-gradient(135deg, #10b981, #059669); transform: translateY(-1px); }
 
 .leaflet-tooltip-barrio {
     background: rgba(11, 21, 48, 0.95) !important;
-    border: 1px solid var(--cyan-glow) !important;
-    color: var(--text-main) !important;
-    font-weight: 600 !important;
-    padding: 4px 10px !important;
-    border-radius: 8px !important;
-    font-size: 0.78rem !important;
+    border: 1px solid var(--cyan-glow) !important; color: var(--text-main) !important;
+    font-weight: 600 !important; padding: 4px 10px !important; border-radius: 8px !important; font-size: 0.78rem !important;
 }
 
 #map { width: 100%; height: 100%; z-index: 1; background: var(--bg-main) !important; }
+
+/* ==========================================================================
+   MEDIA QUERIES DE ADAPTABILIDAD RESPONSIVA (TABLETS Y MÓVILES)
+   ========================================================================== */
+@media screen and (max-width: 1024px) {
+    sidebar {
+        width: 360px;
+        top: 15px; left: 15px; bottom: 15px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    #sidebarToggleMobile {
+        display: flex;
+    }
+    sidebar {
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 100%;
+        max-width: 420px;
+        border-radius: 0 var(--radius-large) var(--radius-large) 0 !important;
+        transform: translateX(-100%);
+    }
+    sidebar.mobile-open {
+        transform: translateX(0);
+    }
+}

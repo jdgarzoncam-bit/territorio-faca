@@ -63,6 +63,17 @@ function inicializarSistemaMapa() {
     searchMarkersGroup.addTo(map);
     miraMarkersGroup.addTo(map);
 
+    // Control del menú responsive en móviles
+    const toggleBtn = document.getElementById('sidebarToggleMobile');
+    const sidebarPanel = document.getElementById('sidebarPanel');
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            sidebarPanel.classList.toggle('mobile-open');
+            setTimeout(() => { if (map) map.invalidateSize(); }, 300);
+        });
+    }
+
     // Cargar base de electores convertida desde Excel
     fetch('./electores_2.json')
         .then(res => res.json())
@@ -185,6 +196,10 @@ function inicializarSistemaMapa() {
             marker.on('click', function() {
                 map.setView([puesto.lat, puesto.lon], 16);
                 mostrarFichaPuesto(puesto, votantesPuesto);
+                if (window.innerWidth <= 768 && sidebarPanel.classList.contains('mobile-open')) {
+                    sidebarPanel.classList.remove('mobile-open');
+                    setTimeout(() => map.invalidateSize(), 300);
+                }
             });
 
             puestosLayerGroup.addLayer(marker);
@@ -244,7 +259,7 @@ function inicializarSistemaMapa() {
     }
 
     /* ==========================================================================
-       LÓGICA DEL MÓDULO InfoMIRA (FILTRO DE CUIDADOR Y ESTADO)
+       LÓGICA DEL MÓDULO InfoMIRA
        ========================================================================== */
     function inicializarModuloInfoMIRA() {
         const inputCuidador = document.getElementById('cuidadorSearchInput');
@@ -262,7 +277,6 @@ function inicializarSistemaMapa() {
                 return;
             }
 
-            // Filtrar electores en la base
             const redEncontrada = baseVotantes.filter(v => {
                 const cuidador = (v.cuidador || v.CUIDADOR || v.LIDER || '').toString().toLowerCase();
                 const docCuidador = (v.cedula_cuidador || v.DOC_CUIDADOR || '').toString().toLowerCase();
@@ -286,7 +300,6 @@ function inicializarSistemaMapa() {
                 return;
             }
 
-            // Ocultar capa general de puestos y aislar red en el mapa
             puestosLayerGroup.remove();
             miraMarkersGroup.clearLayers();
 
@@ -327,6 +340,10 @@ function inicializarSistemaMapa() {
                     marker.on('click', function() {
                         map.setView([puesto.lat, puesto.lon], 16);
                         mostrarFichaPuesto(puesto, votantesRedPuesto);
+                        if (window.innerWidth <= 768 && sidebarPanel.classList.contains('mobile-open')) {
+                            sidebarPanel.classList.remove('mobile-open');
+                            setTimeout(() => map.invalidateSize(), 300);
+                        }
                     });
 
                     miraMarkersGroup.addLayer(marker);
@@ -337,8 +354,13 @@ function inicializarSistemaMapa() {
                 map.fitBounds(bounds, { padding: [50, 50] });
             }
 
-            // Mostrar detalle completo en la ficha inferior con scroll interno
             mostrarFichaRedInfoMIRA(queryCuidador, estadoFiltro, redEncontrada, puestosAfectados);
+
+            // Ocultar menú automáticamente en móviles al buscar para ver el mapa
+            if (window.innerWidth <= 768) {
+                sidebarPanel.classList.remove('mobile-open');
+                setTimeout(() => map.invalidateSize(), 300);
+            }
         }
 
         function mostrarFichaRedInfoMIRA(query, estado, redTotal, puestosAfectados) {
@@ -371,7 +393,6 @@ function inicializarSistemaMapa() {
                 </div>
                 <div class="ficha-item" style="margin-bottom: 6px;"><strong>Puestos con Cobertura:</strong> ${numPuestos} puesto(s)</div>
                 
-                <!-- Contenedor con Scroll para ver todos los datos tipo Excel -->
                 <div style="max-height: 180px; overflow-y: auto; padding-right: 4px; margin-top: 8px; margin-bottom: 8px;">
                     ${htmlDetalleIntegrantes}
                 </div>
@@ -453,6 +474,10 @@ function inicializarSistemaMapa() {
             map.setView([puestoEncontrado.lat, puestoEncontrado.lon], 16);
             const votantesPuesto = baseVotantes.filter(v => v['PUESTO DE VOTACION'] && v['PUESTO DE VOTACION'].trim().toUpperCase() === puestoEncontrado.matchName);
             mostrarFichaPuesto(puestoEncontrado, votantesPuesto);
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebarPanel').classList.remove('mobile-open');
+                setTimeout(() => map.invalidateSize(), 300);
+            }
             return;
         }
 
@@ -463,6 +488,10 @@ function inicializarSistemaMapa() {
                 map.setView([matchPuesto.lat, matchPuesto.lon], 16);
                 const votantesPuesto = baseVotantes.filter(v => v['PUESTO DE VOTACION'] === ciudadanoEncontrado['PUESTO DE VOTACION']);
                 mostrarFichaPuesto(matchPuesto, votantesPuesto);
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebarPanel').classList.remove('mobile-open');
+                    setTimeout(() => map.invalidateSize(), 300);
+                }
                 alert(`Ciudadano encontrado: ${ciudadanoEncontrado.NOMBRE} (Puesto: ${matchPuesto.nombre}, Mesa: ${ciudadanoEncontrado.MESA || 'S/N'})`);
                 return;
             }
