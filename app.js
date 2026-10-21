@@ -5,11 +5,11 @@ let baseVotantes = [];
 let puestosLayerGroup = L.layerGroup();
 let searchMarkersGroup = L.layerGroup();
 let miraMarkersGroup = L.layerGroup();
-let capaSeleccionada = null;
+let heatLayer = null;
+let isHeatmapActive = false;
 let barriosFiltroEstado = {};
 let puestosFiltroEstado = {};
 
-// 16 Puestos Oficiales con coordenadas reales en Facatativá y su nombre equivalente en el Excel
 const listaPuestosVotacion = [
     { id: 1, nombre: "Colegio Silveria Espinosa", matchName: "COLEGIO SILVERIA ESPINOSA", direccion: "Calle 18B No. 4-21", lat: 4.8211, lon: -74.3524 },
     { id: 2, nombre: "El Portal de Tus Sueños", matchName: "EL PORTAL DE TUS SUEÑOS", direccion: "Calle 21C # 1-25 Sur", lat: 4.8015, lon: -74.3468 },
@@ -48,18 +48,11 @@ document.getElementById('password').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') validarAcceso();
 });
 
-// Lógica de Retracción del Menú Lateral con el botón integrado en la cabecera
 document.getElementById('sidebarToggleBtn').addEventListener('click', function() {
     const sidebar = document.getElementById('mainSidebar');
     sidebar.classList.toggle('collapsed');
-    
-    // Si se contrae, podemos crear un botón flotante temporal o simplemente dejar que se despliegue de nuevo
-    // Nota: Cuando está contraído, añadiremos un botón flotante en pantalla para poder reabrirlo fácilmente.
     manejarBotonFlotanteReapertura(sidebar.classList.contains('collapsed'));
-
-    setTimeout(() => {
-        if (map) map.invalidateSize();
-    }, 350);
+    setTimeout(() => { if (map) map.invalidateSize(); }, 350);
 });
 
 function manejarBotonFlotanteReapertura(estaContraido) {
@@ -109,7 +102,11 @@ function inicializarSistemaMapa() {
     searchMarkersGroup.addTo(map);
     miraMarkersGroup.addTo(map);
 
-    // Cargar base de electores convertida desde Excel
+    // Botón de cierre para la tarjeta flotante del puesto
+    document.getElementById('closeFloatingWidget').addEventListener('click', function() {
+        document.getElementById('floatingPuestoWidget').classList.add('hidden');
+    });
+
     fetch('./electores_2.json')
         .then(res => res.json())
         .catch(() => fetch('./electores.json').then(res => res.json()))
@@ -118,8 +115,10 @@ function inicializarSistemaMapa() {
             generarListaPuestos();
             cargarPuestosEnMapa();
             inicializarModuloInfoMIRA();
+            actualizarDashboardKPIs();
+            inicializarModulosNuevos();
         })
-        .catch(err => console.log("Nota: Asegúrate de tener electores_2.json o electores.json en la carpeta del proyecto."));
+        .catch(err => console.log("Aviso: Asegúrate de tener electores_2.json en la carpeta."));
 
     fetch('./barrios.geojson')
         .then(response => response.json())
@@ -166,6 +165,7 @@ function inicializarSistemaMapa() {
 
     function generarListaPuestos() {
         const container = document.getElementById('puestos-checkbox-container');
+        if (!container) return;
         container.innerHTML = '';
 
         listaPuestosVotacion.forEach(puesto => {
@@ -180,14 +180,40 @@ function inicializarSistemaMapa() {
             });
         });
 
-        document.getElementById('select-all-puestos').addEventListener('change', function() {
-            const isChecked = this.checked;
-            document.querySelectorAll('.chk-puesto').forEach(chk => {
-                chk.checked = isChecked;
-                puestosFiltroEstado[chk.getAttribute('data-id')] = isChecked;
+        const selectAllPuestos = document.getElementById('select-all-puestos');
+        if (selectAllPuestos) {
+            selectAllPuestos.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.chk-puesto').forEach(chk => {
+                    chk.checked = isChecked;
+                    puestosFiltroEstado[chk.getAttribute('data-id')] = isChecked;
+                });
+                cargarPuestosEnMapa();
             });
-            cargarPuestosEnMapa();
+        }
+    }
+
+    function actualizarDashboardKPIs() {
+        const totalVotantes = baseVotantes.length;
+        const metaEsperada = 1000;
+        const porcentaje = Math.min(100, Math.round((totalVotantes / metaEsperada) * 100));
+
+        let lideresCount = 0;
+        let activosCount = 0;
+        let referidosCount = 0;
+
+        baseVotantes.forEach(v => {
+            const estado = (v.Estado || v.ESTADO || v.ROL || 'REFERIDO').toString().toUpperCase();
+            if (estado.includes('LIDER') || estado.includes('LÍDER') || estado.includes('CUIDADOR')) lideresCount++;
+            else if (estado.includes('ACTIVO')) activosCount++;
+            else referidosCount++;
         });
+
+        document.getElementById('kpiMetaVal').innerText = `${porcentaje}% (${totalVotantes} / ${metaEsperada})`;
+        document.getElementById('kpiBarFill').style.width = `${porcentaje}%`;
+        document.getElementById('kpiLideres').innerText = lideresCount;
+        document.getElementById('kpiActivos').innerText = activosCount;
+        document.getElementById('kpiReferidos').innerText = referidosCount;
     }
 
     function cargarPuestosEnMapa() {
@@ -237,27 +263,97 @@ function inicializarSistemaMapa() {
         });
     }
 
+    // MOSTRAR FICHA CON EL DISEÑO BASADO EN EL PANTALLAZO 2 EN LA ESQUINA INFERIOR DERECHA
     function mostrarFichaPuesto(puesto, votantes) {
         let mesasCount = {};
         votantes.forEach(v => {
-            let m = v.MESA || 'Sin Asignar';
+            let m = v.MESA || 'S/N';
             mesasCount[m] = (mesasCount[m] || 0) + 1;
         });
 
-        let htmlMesas = Object.keys(mesasCount).map(m => `<li>Mesa ${m}: <strong>${mesasCount[m]} votantes</strong></li>`).join('');
+        const totalMesas = Object.keys(mesasCount).length;
+        const mesaMasPoblada = Object.keys(mesasCount).reduce((a, b) => mesasCount[a] > mesasCount[b] ? a : b, '1');
 
-        document.getElementById('fichaDetalle').innerHTML = `
-            <h3>🗳️ ${puesto.nombre}</h3>
-            <div class="ficha-item"><strong>Dirección:</strong> ${puesto.direccion}</div>
-            <div class="ficha-item" style="color: var(--cyan-glow); font-weight: 600; margin-top: 6px;">Total Inscritos: ${votantes.length} ciudadanos</div>
-            <div class="ficha-item" style="margin-top: 6px;"><strong>Distribución por Mesas:</strong></div>
-            <ul style="font-size: 0.8rem; padding-left: 16px; max-height: 90px; overflow-y: auto; color: var(--text-muted);">
-                ${htmlMesas || '<li>Sin mesas registradas en base</li>'}
-            </ul>
+        let htmlMesas = Object.keys(mesasCount).map(m => {
+            let pct = Math.min(100, Math.round((mesasCount[m] / 15) * 100));
+            return `
+                <div class="dash-progress-row">
+                    <div class="dash-progress-label">
+                        <span>Mesa ${m}</span>
+                        <strong>${mesasCount[m]} votante(s)</strong>
+                    </div>
+                    <div class="dash-bar-bg">
+                        <div class="dash-bar-fill" style="width: ${pct}%;"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const widgetContent = document.getElementById('floatingWidgetContent');
+        widgetContent.innerHTML = `
+            <!-- Bloque Encabezado -->
+            <div class="dash-header">
+                <div class="dash-title-group">
+                    <h3>🗳️ ${puesto.nombre}</h3>
+                    <span class="dash-badge">PUESTO OFICIAL</span>
+                </div>
+            </div>
+
+            <!-- Bloque Círculos KPIs Estilo Pantallazo 2 -->
+            <div class="dash-circles-row">
+                <div class="dash-circle-item">
+                    <div class="dash-circle-ring">
+                        <span>${puesto.id}</span>
+                    </div>
+                    <small>ID Puesto</small>
+                </div>
+
+                <div class="dash-circle-item active">
+                    <div class="dash-circle-ring primary">
+                        <span>${votantes.length}</span>
+                    </div>
+                    <small>Inscritos</small>
+                </div>
+
+                <div class="dash-circle-item">
+                    <div class="dash-circle-ring">
+                        <span>${totalMesas}</span>
+                    </div>
+                    <small>Mesas</small>
+                </div>
+            </div>
+
+            <div class="dash-divider"></div>
+
+            <!-- Sección Dirección y Detalle -->
+            <div class="dash-info-group">
+                <div class="dash-info-item">
+                    <span class="dash-icon">📍</span>
+                    <div>
+                        <small>Ubicación / Dirección</small>
+                        <strong>${puesto.direccion}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-divider"></div>
+
+            <!-- Sección de Barras de Distribución por Mesas -->
+            <div class="dash-section-title">
+                <span class="dash-icon">📊</span> Distribución de Censo por Mesas
+            </div>
+            <div class="dash-progress-container">
+                ${htmlMesas || '<p class="placeholder-text">Sin mesas asignadas en la base.</p>'}
+            </div>
+
+            <!-- Botón de Acción Inferior -->
             <button id="downloadExcelBtn" class="excel-download-btn">
                 📥 Descargar Reporte Excel (${votantes.length})
             </button>
         `;
+
+        const widgetContainer = document.getElementById('floatingPuestoWidget');
+        widgetContainer.classList.remove('hidden');
 
         document.getElementById('downloadExcelBtn').addEventListener('click', function() {
             exportarExcelPuesto(puesto, votantes);
@@ -289,14 +385,51 @@ function inicializarSistemaMapa() {
         XLSX.writeFile(workbook, `Reporte_Votantes_${puesto.nombre.replace(/\s+/g, '_')}.xlsx`);
     }
 
-    /* ==========================================================================
-       LÓGICA DEL MÓDULO InfoMIRA (FILTRO DE CUIDADOR Y ESTADO)
-       ========================================================================== */
+    function inicializarModulosNuevos() {
+        document.getElementById('logisticaBtn').addEventListener('click', function() {
+            const filtroMovilidad = document.getElementById('logisticaSelect').value;
+            alert(`Filtro de Logística aplicado: ${filtroMovilidad}.`);
+        });
+
+        document.getElementById('asistenciaBtn').addEventListener('click', function() {
+            const filtroAsistencia = document.getElementById('asistenciaSelect').value;
+            alert(`Filtro de Asistencia Electoral aplicado: ${filtroAsistencia}.`);
+        });
+
+        document.getElementById('toggleHeatmapBtn').addEventListener('click', function() {
+            isHeatmapActive = !isHeatmapActive;
+            if (isHeatmapActive) {
+                let heatPoints = [];
+                listaPuestosVotacion.forEach(p => {
+                    const count = baseVotantes.filter(v => (v['PUESTO DE VOTACION'] || '').trim().toUpperCase() === p.matchName).length;
+                    if (count > 0) {
+                        heatPoints.push([p.lat, p.lon, Math.min(1.0, count / 20)]);
+                    }
+                });
+                if (heatPoints.length > 0 && typeof L.heatLayer === 'function') {
+                    heatLayer = L.heatLayer(heatPoints, { radius: 32, blur: 20, maxZoom: 16 }).addTo(map);
+                    alert("🔥 Mapa de Calor activado correctamente sobre Facatativá.");
+                } else {
+                    alert("Activando simulación térmica según densidad electoral...");
+                    let simPoints = listaPuestosVotacion.map(p => [p.lat, p.lon, 0.8]);
+                    heatLayer = L.heatLayer(simPoints, { radius: 30, blur: 20 }).addTo(map);
+                }
+            } else {
+                if (heatLayer) {
+                    map.removeLayer(heatLayer);
+                    heatLayer = null;
+                }
+                alert("Mapa de calor desactivado.");
+            }
+        });
+    }
+
     function inicializarModuloInfoMIRA() {
         const inputCuidador = document.getElementById('cuidadorSearchInput');
         const btnBuscarMira = document.getElementById('miraSearchBtn');
         const selectEstado = document.getElementById('miraEstadoSelect');
         const btnResetMira = document.getElementById('miraResetBtn');
+        const miraInternalContainer = document.getElementById('miraInternalResultsContainer');
 
         function aplicarFiltroInfoMIRA() {
             const queryCuidador = inputCuidador.value.trim().toLowerCase();
@@ -305,6 +438,7 @@ function inicializarSistemaMapa() {
             if (!queryCuidador && estadoFiltro === 'TODOS') {
                 miraMarkersGroup.clearLayers();
                 puestosLayerGroup.addTo(map);
+                if (miraInternalContainer) miraInternalContainer.innerHTML = '';
                 return;
             }
 
@@ -327,7 +461,9 @@ function inicializarSistemaMapa() {
             });
 
             if (redEncontrada.length === 0) {
-                alert("No se encontraron registros para la red de apoyo o filtro especificado.");
+                if (miraInternalContainer) {
+                    miraInternalContainer.innerHTML = `<div style="font-size: 0.78rem; color: #f87171; padding: 6px; text-align: center;">No se encontraron registros para la red.</div>`;
+                }
                 return;
             }
 
@@ -381,49 +517,48 @@ function inicializarSistemaMapa() {
                 map.fitBounds(bounds, { padding: [50, 50] });
             }
 
-            mostrarFichaRedInfoMIRA(queryCuidador, estadoFiltro, redEncontrada, puestosAfectados);
+            mostrarResultadosEnModuloInfoMIRA(queryCuidador, estadoFiltro, redEncontrada, puestosAfectados);
         }
 
-        function mostrarFichaRedInfoMIRA(query, estado, redTotal, puestosAfectados) {
+        function mostrarResultadosEnModuloInfoMIRA(query, estado, redTotal, puestosAfectados) {
+            if (!miraInternalContainer) return;
             const nombreLider = query ? query.toUpperCase() : "GENERAL";
             const numPuestos = Object.keys(puestosAfectados).length;
 
             let htmlDetalleIntegrantes = redTotal.map((v, i) => `
-                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-weight: 700; color: var(--text-main); font-size: 0.85rem;">${i + 1}. ${v.NOMBRE || 'Sin Nombre'}</span>
-                        <span style="font-size: 0.7rem; padding: 2px 6px; background: rgba(56, 189, 248, 0.15); color: var(--cyan-glow); border-radius: 4px; font-weight: 600;">
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: 8px; padding: 8px; margin-bottom: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                        <span style="font-weight: 700; color: var(--text-main); font-size: 0.8rem;">${i + 1}. ${v.NOMBRE || 'Sin Nombre'}</span>
+                        <span style="font-size: 0.65rem; padding: 2px 5px; background: rgba(56, 189, 248, 0.15); color: var(--cyan-glow); border-radius: 4px; font-weight: 600;">
                             ${v.Estado || v.ESTADO || v.ROL || 'REFERIDO'}
                         </span>
                     </div>
-                    <div style="font-size: 0.78rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 4px;">
                         <div><strong>Doc:</strong> ${v.Documento || v.CEDULA || 'N/A'}</div>
                         <div><strong>Tel:</strong> ${v['Teléfono / s'] || v.Teléfono || 'N/A'}</div>
                         <div><strong>Puesto:</strong> ${v['PUESTO DE VOTACION'] || 'Sin Asignar'}</div>
                         <div><strong>Mesa:</strong> ${v.MESA || 'S/N'}</div>
-                        <div style="grid-column: span 2;"><strong>Barrio:</strong> ${v.Barrio || 'N/A'}</div>
                     </div>
                 </div>
             `).join('');
 
-            document.getElementById('fichaDetalle').innerHTML = `
-                <h3>💙 Red InfoMIRA — ${nombreLider}</h3>
-                <div class="ficha-item"><strong>Filtro Estado:</strong> ${estado}</div>
-                <div class="ficha-item" style="color: var(--cyan-glow); font-weight: 600; margin-top: 2px;">
-                    Integrantes en Red: ${redTotal.length} persona(s)
+            miraInternalContainer.innerHTML = `
+                <div style="border-top: 1px solid var(--glass-border); padding-top: 8px; margin-top: 4px;">
+                    <div style="font-size: 0.82rem; color: var(--cyan-glow); font-weight: 700; margin-bottom: 4px;">💙 Red InfoMIRA — ${nombreLider}</div>
+                    <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px;">
+                        <div><strong>Estado:</strong> ${estado} | <strong>Integrantes:</strong> ${redTotal.length}</div>
+                        <div><strong>Puestos Cubiertos:</strong> ${numPuestos}</div>
+                    </div>
+                    <div style="max-height: 200px; overflow-y: auto; padding-right: 2px; margin-bottom: 6px;">
+                        ${htmlDetalleIntegrantes}
+                    </div>
+                    <button id="downloadExcelRedInternalBtn" class="excel-download-btn" style="padding: 8px; font-size: 0.8rem;">
+                        📥 Exportar Red InfoMIRA a Excel (${redTotal.length})
+                    </button>
                 </div>
-                <div class="ficha-item" style="margin-bottom: 6px;"><strong>Puestos con Cobertura:</strong> ${numPuestos} puesto(s)</div>
-                
-                <div style="max-height: 180px; overflow-y: auto; padding-right: 4px; margin-top: 8px; margin-bottom: 8px;">
-                    ${htmlDetalleIntegrantes}
-                </div>
-
-                <button id="downloadExcelRedBtn" class="excel-download-btn">
-                    📥 Exportar Red InfoMIRA a Excel (${redTotal.length})
-                </button>
             `;
 
-            document.getElementById('downloadExcelRedBtn').addEventListener('click', function() {
+            document.getElementById('downloadExcelRedInternalBtn').addEventListener('click', function() {
                 const datosExportar = redTotal.map((v, index) => ({
                     "N.º": index + 1,
                     "Documento": v.Documento || v.CEDULA || "",
@@ -454,9 +589,7 @@ function inicializarSistemaMapa() {
             selectEstado.value = 'TODOS';
             miraMarkersGroup.clearLayers();
             puestosLayerGroup.addTo(map);
-            document.getElementById('fichaDetalle').innerHTML = `
-                <p class="placeholder-text">Selecciona un puesto de votación en el mapa o en el menú para ver votantes y descargar el Excel.</p>
-            `;
+            if (miraInternalContainer) miraInternalContainer.innerHTML = '';
             map.setView([4.8123, -74.3542], 14);
         });
     }

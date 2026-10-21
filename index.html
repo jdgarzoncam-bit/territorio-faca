@@ -13,7 +13,10 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <!-- SheetJS (Para exportar a Excel directamente desde el navegador) -->
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+    <!-- SheetJS -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <!-- Estilos Premium Dark Glassmorphism -->
@@ -55,7 +58,6 @@
         
         <sidebar class="glass-panel" id="mainSidebar">
             <div class="sidebar-header">
-                <!-- Botón de Menú Integrado en lugar del Globo -->
                 <button id="sidebarToggleBtn" title="Ocultar / Mostrar Menú">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
                 </button>
@@ -74,35 +76,7 @@
                     </button>
                 </div>
 
-                <!-- Sección: Alcaldía / Secretarías -->
-                <details class="custom-dropdown">
-                    <summary>
-                        <span>🏛️ Alcaldía (Secretarías)</span>
-                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-                    </summary>
-                    <div class="dropdown-content">
-                        <div class="select-all-container">
-                            <label><input type="checkbox" id="select-all-secretarias" checked> (Seleccionar todas)</label>
-                        </div>
-                        <div class="filter-list filter-group">
-                            <label><input type="checkbox" class="chk-sec" id="sec-general" checked> Secretaría General</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-gobierno" checked> Secretaría de Gobierno y Convivencia</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-hacienda" checked> Secretaría de Hacienda</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-planeacion" checked> Secretaría de Planeación</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-educacion" checked> Secretaría de Educación</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-salud" checked> Secretaría de Salud</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-cultura" checked> Secretaría de Cultura y Juventud</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-agropecuario" checked> Secretaría de Desarrollo Agropecuario</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-desarrollo" checked> Secretaría de Desarrollo Económico</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-social" checked> Secretaría de Desarrollo e Integración Social</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-juridica" checked> Secretaría Jurídica</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-movilidad" checked> Secretaría de Movilidad / Tránsito</label>
-                            <label><input type="checkbox" class="chk-sec" id="sec-obras" checked> Secretaría de Obras / Infraestructura</label>
-                        </div>
-                    </div>
-                </details>
-
-                <!-- MÓDULO: InfoMIRA -->
+                <!-- MÓDULO 1: InfoMIRA (COLAPSADO POR DEFECTO SIN 'open') -->
                 <details class="custom-dropdown" id="dropdown-infomira">
                     <summary>
                         <span>💙 InfoMIRA (Red de Cuidador/Líder)</span>
@@ -130,11 +104,94 @@
                                 ↺ Restablecer Filtros
                             </button>
                         </div>
+
+                        <!-- CONTENEDOR DE RESULTADOS INTERNO DE INFOMIRA -->
+                        <div id="miraInternalResultsContainer" style="margin-top: 10px;"></div>
                     </div>
                 </details>
 
-                <!-- Sección: Info Electoral (Puestos de Votación con Base Maestra) -->
-                <details class="custom-dropdown" open>
+                <!-- MÓDULO 2: Dashboard Analítico de KPIs -->
+                <details class="custom-dropdown" id="dropdown-kpi">
+                    <summary>
+                        <span>📊 Dashboard & Metas (KPIs)</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="dropdown-content">
+                        <div class="kpi-container">
+                            <div class="kpi-card">
+                                <span class="kpi-label">Meta Global Alcanzada</span>
+                                <div class="kpi-value" id="kpiMetaVal">0%</div>
+                                <div class="kpi-bar-bg"><div class="kpi-bar-fill" id="kpiBarFill" style="width: 0%;"></div></div>
+                            </div>
+                            <div class="kpi-row">
+                                <div class="kpi-mini"><span>Líderes</span><strong id="kpiLideres">0</strong></div>
+                                <div class="kpi-mini"><span>Activos</span><strong id="kpiActivos">0</strong></div>
+                                <div class="kpi-mini"><span>Referidos</span><strong id="kpiReferidos">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- MÓDULO 3: Logística y Transporte -->
+                <details class="custom-dropdown" id="dropdown-logistica">
+                    <summary>
+                        <span>🚐 Logística & Transporte (Día D)</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="dropdown-content">
+                        <div class="mira-filter-box">
+                            <label class="mira-label">Filtrar Requerimiento Movilidad:</label>
+                            <select id="logisticaSelect" class="mira-select">
+                                <option value="TODOS">-- Ver Todos --</option>
+                                <option value="REQUIERE">Requiere Transporte / Ruta</option>
+                                <option value="PROPIO">Vehículo Propio / Autónomo</option>
+                            </select>
+                            <button id="logisticaBtn" class="mira-reset-btn" style="background: var(--primary-blue); color: white;">
+                                Filtrar Mapa Logístico
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- MÓDULO 4: Control de Asistencia -->
+                <details class="custom-dropdown" id="dropdown-asistencia">
+                    <summary>
+                        <span>✅ Control de Asistencia (Voto)</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="dropdown-content">
+                        <div class="mira-filter-box">
+                            <label class="mira-label">Estado de Votación Electoral:</label>
+                            <select id="asistenciaSelect" class="mira-select">
+                                <option value="TODOS">-- Todos los Estados --</option>
+                                <option value="VOTO">🗳️ Ya Ejercieron el Voto</option>
+                                <option value="PENDIENTE">⏳ Pendientes por Votar</option>
+                            </select>
+                            <button id="asistenciaBtn" class="mira-reset-btn" style="background: #059669; color: white;">
+                                Actualizar Filtro Asistencia
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- MÓDULO 5: Mapa de Calor -->
+                <details class="custom-dropdown" id="dropdown-heat">
+                    <summary>
+                        <span>🔥 Mapa de Calor y Densidad</span>
+                        <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="dropdown-content">
+                        <div class="mira-filter-box">
+                            <p style="font-size: 0.78rem; color: var(--text-muted);">Visualiza las zonas de mayor concentración de electores en Facatativá mediante calor espacial.</p>
+                            <button id="toggleHeatmapBtn" class="mira-reset-btn" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                                🌡️ Activar / Desactivar Calor
+                            </button>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- MÓDULO 6: Info Electoral (Puestos) -->
+                <details class="custom-dropdown" id="dropdown-puestos">
                     <summary>
                         <span>🗳️ Info Electoral (Puestos)</span>
                         <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
@@ -143,14 +200,12 @@
                         <div class="select-all-container">
                             <label><input type="checkbox" id="select-all-puestos" checked> (Seleccionar todos)</label>
                         </div>
-                        <div id="puestos-checkbox-container" class="filter-list">
-                            <!-- Carga dinámica -->
-                        </div>
+                        <div id="puestos-checkbox-container" class="filter-list"></div>
                     </div>
                 </details>
 
-                <!-- Sección: Barrios y Sectores -->
-                <details class="custom-dropdown">
+                <!-- MÓDULO 7: Barrios y Sectores -->
+                <details class="custom-dropdown" id="dropdown-barrios">
                     <summary>
                         <span>🏘️ Barrios y Sectores (125)</span>
                         <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
@@ -164,14 +219,14 @@
                         </div>
                     </div>
                 </details>
-
-                <div class="section-title">Ficha Electoral & Descarga</div>
-                <div id="fichaDetalle" class="ficha-card">
-                    <p class="placeholder-text">Selecciona un puesto de votación en el mapa o en el menú para ver votantes y descargar el Excel.</p>
-                </div>
             </div>
-            
         </sidebar>
+
+        <!-- TARJETA FLOTANTE INFERIOR DERECHA (ESTILO DASHBOARD PANTALLAZO 2) -->
+        <div id="floatingPuestoWidget" class="floating-puesto-card hidden">
+            <button id="closeFloatingWidget" class="floating-close-btn" title="Cerrar Ficha">✕</button>
+            <div id="floatingWidgetContent"></div>
+        </div>
 
         <div id="map"></div>
     </div>
