@@ -1,0 +1,464 @@
+// MIRA TU TERRITORIO — Control Administrativo: permisos granulares.
+const MODULE_ACTIONS = {
+  actividades:[["view","Consulta"],["create","Crear"],["edit","Editar"],["annul","Anular asistencia"],["export","Exportar Excel"],["delete","Eliminar"]],
+  personas:[["view","Consultar personas"],["create","Crear / Incorporar personas"],["edit","Completar / editar fichas"],["export","Exportar fichas"]],
+  base_datos_general:[["view","Consultar bases autorizadas"],["export","Exportar información"]],
+  concejal:[["view","Consulta"],["create","Crear"],["edit","Editar"],["delete","Eliminar"]],
+  infomira:[["view","Consulta"]],
+  pqrs:[["view","Consulta"]]
+};
+const $ = (id) => document.getElementById(id);
+let users = [], modules = [], selectedProfile = null, permissionRows = [], allPermissionRows = [];
+let activeUserTab = "pending";
+let activePanelView = "users";
+let selectionRequestVersion = 0;
+let auditRequestVersion = 0;
+let auditOffset = 0;
+let auditHasMore = false;
+const AUDIT_PAGE_SIZE = 50;
+let busy = false;
+let reloadUsersAfterBusy = false;
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function notice(message, error=false) {
+  const node=$("adminPermissionsNotice");
+  if(!node)return;
+  node.textContent=message;
+  node.classList.remove("hidden","is-error","is-success");
+  node.classList.add(error?"is-error":"is-success");
+}
+function clearNotice(){const n=$("adminPermissionsNotice");if(n){n.textContent="";n.classList.add("hidden");}}
+function roleAllowsAction(role,action){
+  if(role==="operator")return ["view","create","edit","export","annul"].includes(action);
+  if(role==="viewer")return action==="view";
+  return false;
+}
+function hasUsableModuleAccess(rows,role="operator"){
+  const activeModules=new Set(modules.filter(module=>module.active===true).map(module=>module.module_key));
+  return roleAllowsAction(role,"view")&&Array.isArray(rows)&&rows.some(p=>
+    p.allowed===true &&
+    p.action_key==="view" &&
+    activeModules.has(p.module_key) &&
+    p.module_key!=="testigos" &&
+    p.module_key!=="control_administrativo"
+  );
+}
+function userApprovalStatus(user){
+  const ownPermissions=allPermissionRows.filter(row=>row.user_profile_id===user.id);
+  if(user.email_verified!==true)return {bucket:"pending",key:"email",label:"Correo sin confirmar"};
+  if(user.active!==true)return {bucket:"pending",key:"inactive",label:"Cuenta inactiva · acceso bloqueado"};
+  const hasPrivateModuleAccess=hasUsableModuleAccess(ownPermissions,user.role);
+  return {bucket:"approved",key:"approved",label:hasPrivateModuleAccess?"Aprobado · módulos autorizados":"Aprobado · acceso común al mapa"};
+}
+const PRIMARY_ADMIN_AUTH_ID="beef5bf3-82a8-4c35-a12c-17771be59da1";
+function isAdmin(){const user=window.MIRA_CURRENT_USER;return user?.role==="admin"&&user?.authUserId===PRIMARY_ADMIN_AUTH_ID;}
+function openPanel(){
+  if(!isAdmin())return;
+  $("adminPermissionsPanel")?.classList.remove("hidden");
+  $("adminPermissionsPanel")?.setAttribute("aria-hidden","false");
+  document.body.classList.add("admin-permissions-open");
+  switchPanelView("users");
+  if(window.MIRA_CURRENT_USER && window.MIRA_DATA) loadUsers();
+  else $("adminUsersList").innerHTML='<p class="admin-permissions-loading">Esperando la sesión y los servicios de datos…</p>';
+}
+function closePanel(){
+  selectionRequestVersion++;auditRequestVersion++;
+  $("adminPermissionsPanel")?.classList.add("hidden");
+  $("adminPermissionsPanel")?.setAttribute("aria-hidden","true");
+  document.body.classList.remove("admin-permissions-open");
+}
+async function loadUsers(){
+  if(!isAdmin())return;
+  if(busy){reloadUsersAfterBusy=true;return;}
+  if(!window.MIRA_DATA){$("adminUsersList").innerHTML='<p class="admin-permissions-loading">Esperando conexión con Neon…</p>';return;}
+  busy=true;clearNotice();
+  $("adminUsersList").innerHTML='<p class="admin-permissions-loading">Consultando perfiles…</p>';
+  try{
+    const timeout=(promise,label)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tiempo de espera agotado al consultar "+label+". Intenta actualizar nuevamente.")),15000))]);
+    const [profileRows,moduleRows,permissionRowsAll]=await Promise.all([
+      timeout(window.MIRA_DATA.listUserProfiles(),"perfiles"),
+      timeout(window.MIRA_DATA.listModuleCatalog(),"catálogo de módulos"),
+      timeout(window.MIRA_DATA.listAllModulePermissions(),"permisos asignados")
+    ]);
+    users=Array.isArray(profileRows)?profileRows:[];
+    modules=Array.isArray(moduleRows)?moduleRows:[];
+    allPermissionRows=Array.isArray(permissionRowsAll)?permissionRowsAll:[];
+    renderUsers();
+    if(selectedProfile){
+      const stillThere=users.find(u=>u.id===selectedProfile.id);
+      if(stillThere){selectedProfile=stillThere;await selectUser(stillThere.id,false);}
+      else {selectedProfile=null;$("adminPermissionsMatrix").innerHTML='<p class="admin-permissions-empty">Selecciona un usuario.</p>';}
+    }
+  }catch(error){
+    $("adminUsersList").innerHTML='<p class="admin-permissions-error">'+escapeHtml(error.message||"No fue posible consultar los usuarios.")+'</p>';
+  }finally{
+    busy=false;
+    if(reloadUsersAfterBusy){reloadUsersAfterBusy=false;queueMicrotask(()=>loadUsers());}
+  }
+}
+function renderUsers(){
+  const candidates=users.filter(u=>u.role!=="admin");
+  const pending=candidates.filter(u=>userApprovalStatus(u).bucket==="pending");
+  const approved=candidates.filter(u=>userApprovalStatus(u).bucket==="approved");
+  const shown=activeUserTab==="approved"?approved:pending;
+  const pendingTab=$("adminUsersPendingTab"), approvedTab=$("adminUsersApprovedTab");
+  if(pendingTab){pendingTab.classList.toggle("is-active",activeUserTab==="pending");pendingTab.setAttribute("aria-selected",String(activeUserTab==="pending"));pendingTab.textContent="Pendientes / sin acceso · "+pending.length;}
+  if(approvedTab){approvedTab.classList.toggle("is-active",activeUserTab==="approved");approvedTab.setAttribute("aria-selected",String(activeUserTab==="approved"));approvedTab.textContent="Aprobados · "+approved.length;}
+  if(!shown.length){$("adminUsersList").innerHTML=activeUserTab==="approved"?'<p class="admin-permissions-empty">Todavía no hay cuentas aprobadas y activas.</p>':'<p class="admin-permissions-empty">No hay solicitudes pendientes de aprobación.</p>';return;}
+  $("adminUsersList").innerHTML=shown.map(u=>{
+    const selected=selectedProfile?.id===u.id;
+    const label=u.display_name||u.email||"Usuario";
+    return '<button type="button" class="admin-user-row '+(selected?"is-selected":"")+'" data-profile-id="'+escapeHtml(u.id)+'" '+(u.role==="admin"?'data-is-admin="true"':'')+'>'+
+      '<span class="admin-user-avatar">'+escapeHtml((label.trim()[0]||"U").toUpperCase())+'</span>'+
+      '<span class="admin-user-copy"><strong>'+escapeHtml(label)+'</strong><small>'+escapeHtml(u.email||"Sin correo")+'</small><em>'+(u.role==="admin"?"Administradora":u.role==="operator"?"Operador":u.role==="viewer"?"Consulta":u.role==="witness"?"Testigo":escapeHtml(u.role||"Sin rol"))+' · '+escapeHtml(userApprovalStatus(u).label)+'</em></span>'+
+      (u.role==="admin"?'<span class="admin-user-lock" title="Cuenta protegida">🔒</span>':'<span class="admin-user-arrow">›</span>')+'</button>';
+  }).join("");
+}
+async function selectUser(profileId){
+ const user=users.find(u=>u.id===profileId); if(!user)return;
+ const version=++selectionRequestVersion;
+ selectedProfile=user;permissionRows=[];clearNotice();renderUsers();
+ $("adminSelectedUser").innerHTML='<strong>'+escapeHtml(user.display_name||user.email||"Usuario")+'</strong><span>'+escapeHtml(user.email||"")+' · '+escapeHtml(userApprovalStatus(user).label)+'</span>';
+ if(user.role==="admin"){
+  $("adminPermissionsMatrix").innerHTML='<div class="admin-permissions-protected"><strong>🔒 Cuenta administradora protegida</strong><p>Esta cuenta conserva todos los permisos y no puede modificarse desde este panel.</p></div>';return;
+ }
+ $("adminPermissionsMatrix").innerHTML='<p class="admin-permissions-loading">Cargando permisos…</p>';
+ try{
+  const rows=await window.MIRA_DATA.listModulePermissions(user.id);
+  if(version!==selectionRequestVersion||selectedProfile?.id!==user.id)return;
+  permissionRows=Array.isArray(rows)?rows:[];renderMatrix();
+ }catch(error){
+  if(version!==selectionRequestVersion||selectedProfile?.id!==user.id)return;
+  $("adminPermissionsMatrix").innerHTML='<p class="admin-permissions-error">'+escapeHtml(error.message||"No fue posible cargar los permisos.")+'</p>';
+ }
+}
+function renderApprovalControls(user){
+  const roles=[["viewer","Consulta"],["operator","Operador"]];
+  if(user.role==="witness")roles.push(["witness","Testigo (reservado; no asignable)"]);
+  const options=roles.map(([value,label])=>'<option value="'+value+'" '+(user.role===value?"selected ":"")+(value==="witness"?"disabled":"")+'>'+label+'</option>').join("");
+  const hasModuleAccess=hasUsableModuleAccess(permissionRows,user.role);
+  const canApprove=user.email_verified===true;
+  const action=user.active?"suspend":"activate";
+  const label=user.active?"Desaprobar cuenta":"Aprobar y habilitar cuenta";
+  let hint;
+  if(!user.email_verified)hint="La persona debe confirmar su correo electrónico antes de continuar.";
+  else if(!user.active&&!hasModuleAccess)hint="Correo confirmado. Puedes aprobar la cuenta para habilitar el mapa común; asigna módulos privados solo si los necesita.";
+  else if(user.active&&!hasModuleAccess)hint="Cuenta aprobada. Tiene acceso común al mapa; asigna módulos privados solo si los necesita.";
+  else if(!user.active)hint="Correo confirmado y módulos autorizados. La cuenta puede habilitarse.";
+  else hint="Cuenta activa: el mapa común y los módulos autorizados están disponibles.";
+  return '<section class="admin-approval-card"><div><strong>Estado y aprobación</strong><small>'+hint+'</small></div><label class="admin-role-picker"><span>Rol de la cuenta</span><select id="adminRoleSelect">'+options+'</select></label><button type="button" class="admin-approval-button" data-profile-approval="'+action+'" '+(!user.active&&!canApprove?"disabled":"")+'>'+label+'</button><button type="button" class="admin-approval-button admin-role-save" data-profile-approval="save-role">Guardar rol</button></section><div class="admin-approval-divider"></div>';
+}
+async function changeUserApproval(button){
+ if(!isAdmin()||!selectedProfile||selectedProfile.role==="admin")return;
+ const target={...selectedProfile},targetId=selectedProfile.id,action=button.dataset.profileApproval;
+ const activate=action==="activate";
+ if(activate&&!target.email_verified){notice("No puedes activar una cuenta cuyo correo no está confirmado.",true);return;}
+  const nextActive=action==="save-role"?target.active:activate;
+ const role=$("adminRoleSelect")?.value||target.role;
+ if(!["viewer","operator"].includes(role)){notice("El rol Testigo está reservado. Selecciona Consulta u Operador para reemplazarlo.",true);return;}
+ if(target.role==="viewer"&&role==="operator"){
+  const dormant=permissionRows.filter(p=>p.allowed===true&&p.action_key!=="view"&&["create","edit","export","annul"].includes(p.action_key));
+  if(dormant.length){
+   const detail=dormant.map(p=>p.module_key+" · "+p.action_key).join("\n");
+   if(!window.confirm("Este usuario conserva permisos que estaban inactivos por su rol Consulta. Al cambiarlo a Operador, estos permisos individuales pasarán a estar disponibles:\n\n"+detail+"\n\n¿Confirmas que revisaste y autorizas su activación?"))return;
+  }
+ }
+ button.disabled=true;
+ try{
+  const updated=await window.MIRA_DATA.updateUserProfile(targetId,{active:nextActive,role});
+  const row=Array.isArray(updated)?updated[0]:null;
+  if(!row||row.id!==targetId||row.active!==nextActive||row.role!==role)throw new Error("Neon no confirmó el estado y rol solicitados. No se mostrará el cambio como exitoso.");
+  const merged={...target,...row};users=users.map(u=>u.id===targetId?merged:u);
+  if(selectedProfile?.id===targetId){
+   selectedProfile=merged;
+   $("adminSelectedUser").innerHTML='<strong>'+escapeHtml(merged.display_name||merged.email||"Usuario")+'</strong><span>'+escapeHtml(merged.email||"")+' · '+escapeHtml(userApprovalStatus(merged).label)+'</span>';
+   renderUsers();renderMatrix();
+   notice(action==="save-role"?"Rol guardado. Se conservan los permisos existentes; el rol limita las acciones efectivas.":activate?"Cuenta aprobada y habilitada con los módulos autorizados.":"Cuenta desaprobada. Sus permisos se conservan, pero el acceso queda bloqueado.");
+  }
+ }catch(error){if(selectedProfile?.id===targetId)notice(error.message||"No fue posible actualizar el estado de la cuenta.",true);}
+ finally{if(button.isConnected)button.disabled=false;}
+}
+function renderMatrix(){
+ const allowed=new Set(permissionRows.filter(p=>p.allowed).map(p=>p.module_key+"::"+p.action_key));
+ const visibleModules=modules.filter(m=>!['control_administrativo','testigos','centro_operaciones'].includes(m.module_key)&&m.active!==false);
+ const approval=selectedProfile&&selectedProfile.role!=="admin"?renderApprovalControls(selectedProfile):"";
+ const roleNote=selectedProfile&&selectedProfile.role!=="admin"
+  ? '<p class="admin-permissions-hint"><strong>Mapa común:</strong> toda cuenta activa y con correo verificado tiene acceso a Barrios y puestos de votación. No se administra desde esta matriz. El rol establece el límite máximo: Consulta solo puede consultar; Operador puede consultar, crear, editar, exportar y anular cuando el permiso individual está concedido. Eliminar y administrar permanecen reservados al administrador. Los permisos guardados se conservan aunque queden fuera del límite del rol y permanecen inactivos; revísalos antes de cambiar el rol.</p>'
+  : "";
+ $("adminPermissionsMatrix").innerHTML=approval+roleNote+visibleModules.map(m=>{
+  const actions=MODULE_ACTIONS[m.module_key]||[["view","Consulta"]];
+  const controls=actions.map(([key,label])=>{
+   const checked=allowed.has(m.module_key+"::"+key);
+   const roleAllowed=roleAllowsAction(selectedProfile?.role,key);
+   const hasView=allowed.has(m.module_key+"::view");
+   // Una autorización ya guardada siempre se puede retirar, aunque esté inactiva
+   // por falta de Consulta o por el límite del rol actual.
+   const canGrant=roleAllowed&&(key==="view"||hasView);
+   const canRevoke=checked;
+   const disabled=canGrant||canRevoke?"":"disabled";
+   const restrictionLabel=roleAllowed?"Requiere permiso Consulta":selectedProfile?.role==="viewer"?"Requiere rol Operador":"Reservado al administrador";
+   const suffix=disabled?'<small class="admin-role-restriction">'+restrictionLabel+'</small>':"";
+   return '<label class="admin-action-check"><input type="checkbox" data-module="'+escapeHtml(m.module_key)+'" data-action="'+escapeHtml(key)+'" '+(checked?"checked ":"")+disabled+'><span>'+escapeHtml(label)+'</span>'+suffix+'</label>';
+  }).join("");
+  const activeCount=actions.filter(([key])=>allowed.has(m.module_key+"::"+key)&&roleAllowsAction(selectedProfile?.role,key)&&(key==="view"||allowed.has(m.module_key+"::view"))).length;
+  return '<article class="admin-module-permission"><div class="admin-module-permission-title"><strong>'+escapeHtml(m.module_name)+'</strong><small>'+escapeHtml(m.description||"Permisos del módulo")+'</small><small class="admin-permission-summary">'+activeCount+' de '+actions.length+' acciones habilitadas</small></div><div class="admin-module-access-control"><div class="admin-action-checks">'+controls+'</div></div></article>';
+ }).join("")||'<p class="admin-permissions-empty">No hay módulos configurados.</p>';
+}
+async function changePermission(input){
+ if(!isAdmin()||!selectedProfile||selectedProfile.role==="admin")return;
+ const targetProfileId=selectedProfile.id,moduleKey=input.dataset.module,actionKey=input.dataset.action,nextValue=input.checked;
+ if(!roleAllowsAction(selectedProfile.role,actionKey)&&nextValue){input.checked=false;notice("El rol "+(selectedProfile.role==="viewer"?"Consulta":"actual")+" no permite conceder esta acción. Puedes retirar autorizaciones anteriores, pero no activarlas con este rol.",true);return;}
+ if(actionKey!=="view"&&nextValue&&!permissionRows.some(p=>p.module_key===moduleKey&&p.action_key==="view"&&p.allowed===true)){input.checked=false;notice("Para conceder esta acción primero debes habilitar Consulta en el módulo correspondiente.",true);return;}
+ if(actionKey==="view"&&!nextValue){
+  const dependent=permissionRows.filter(p=>p.module_key===moduleKey&&p.action_key!=="view"&&p.allowed===true);
+  if(dependent.length){
+   const detail=dependent.map(p=>p.action_key).join(", ");
+   input.checked=true;
+   notice("Retira primero las demás autorizaciones de este módulo ("+detail+"). Así evitarás que queden permisos residuales que puedan reactivarse al conceder Consulta nuevamente.",true);
+   return;
+  }
+ }
+ input.disabled=true;
+ try{
+  const saved=await window.MIRA_DATA.setModulePermission(targetProfileId,moduleKey,actionKey,nextValue);
+  const row=Array.isArray(saved)?saved[0]:null;
+  if(!row||row.user_profile_id!==targetProfileId||row.module_key!==moduleKey||row.action_key!==actionKey||row.allowed!==nextValue)throw new Error("Neon no confirmó el permiso solicitado. Se restaurará el estado anterior.");
+  if(selectedProfile?.id!==targetProfileId)return;
+  const existing=permissionRows.find(p=>p.module_key===moduleKey&&p.action_key===actionKey);
+  if(existing)Object.assign(existing,row);else permissionRows.push(row);
+  const globalExisting=allPermissionRows.find(p=>p.user_profile_id===targetProfileId&&p.module_key===moduleKey&&p.action_key===actionKey);
+  if(globalExisting)Object.assign(globalExisting,row);else allPermissionRows.push(row);
+  renderUsers();
+  notice(nextValue?"Permiso habilitado.":"Permiso retirado; la base de datos bloqueará esa acción.");renderMatrix();
+ }catch(error){
+  if(input.isConnected)input.checked=!nextValue;
+  if(selectedProfile?.id===targetProfileId)notice(error.message||"No fue posible guardar el permiso.",true);
+ }finally{if(input.isConnected)input.disabled=false;}
+}
+function switchPanelView(view){
+ if(!isAdmin())return;
+ activePanelView=view==="audit"?"audit":"users";
+ $("adminPermissionsBody")?.classList.toggle("hidden",activePanelView!=="users");
+ $("adminAuditPanel")?.classList.toggle("hidden",activePanelView!=="audit");
+ $("adminAuditPanel")?.setAttribute("aria-hidden",String(activePanelView!=="audit"));
+ const toggle=$("adminViewToggleBtn");
+ if(toggle){toggle.textContent=activePanelView==="audit"?"Volver a usuarios y permisos":"Ver historial de auditoría";toggle.setAttribute("aria-label",toggle.textContent);}
+ if(activePanelView==="audit")loadAudit();
+}
+function auditActionLabel(action){
+ const labels={profile_created:"Cuenta creada",profile_updated:"Cuenta actualizada",profile_deleted:"Cuenta eliminada",permission_created:"Permiso asignado",permission_updated:"Permiso actualizado",permission_deleted:"Permiso retirado"};
+ return labels[action]||action||"Evento";
+}
+function renderAudit(rows){
+ const node=$("adminAuditList");if(!node)return;
+ if(!rows.length){node.innerHTML='<p class="admin-permissions-empty">Todavía no hay eventos de auditoría.</p>';return;}
+ node.innerHTML=rows.map(item=>{
+  const date=new Date(item.created_at);
+  const dateLabel=Number.isNaN(date.getTime())?escapeHtml(item.created_at||"Fecha no disponible"):escapeHtml(new Intl.DateTimeFormat("es-CO",{dateStyle:"medium",timeStyle:"short"}).format(date));
+  const actor=users.find(u=>u.auth_user_id===item.actor_auth_user_id); const target=users.find(u=>u.auth_user_id===item.target_auth_user_id); const actorLabel=actor?(actor.display_name||actor.email||item.actor_auth_user_id):item.actor_auth_user_id||"Sistema"; const targetLabel=target?(target.display_name||target.email||item.target_auth_user_id):item.target_auth_user_id||"—";
+  return '<article class="admin-audit-event"><div class="admin-audit-event-heading"><strong>'+escapeHtml(auditActionLabel(item.action_key))+'</strong><time>'+dateLabel+'</time></div><div class="admin-audit-identities"><span><b>Actor:</b> '+escapeHtml(actorLabel)+'</span><span><b>Objetivo:</b> '+escapeHtml(targetLabel)+'</span></div><details><summary>Ver detalles del evento</summary><pre>'+escapeHtml(JSON.stringify(item.details||{},null,2))+'</pre></details></article>';
+ }).join("");
+}
+function renderAuditPagination(){
+ const node=$("adminAuditPagination");if(!node)return;
+ const page=Math.floor(auditOffset/AUDIT_PAGE_SIZE)+1;
+ node.innerHTML='<button type="button" data-audit-page="previous" '+(auditOffset===0?"disabled":"")+'>Anterior</button><span>Página '+page+'</span><button type="button" data-audit-page="next" '+(!auditHasMore?"disabled":"")+'>Siguiente</button>';
+}
+async function loadAudit(reset=false){
+ if(!isAdmin()||!window.MIRA_DATA?.listAdminAudit)return;
+ if(reset)auditOffset=0;
+ const version=++auditRequestVersion,node=$("adminAuditList");
+ if(node)node.innerHTML='<p class="admin-permissions-loading">Consultando historial…</p>';
+ try{
+  const rows=await window.MIRA_DATA.listAdminAudit({limit:AUDIT_PAGE_SIZE+1,offset:auditOffset});
+  if(version!==auditRequestVersion||activePanelView!=="audit")return;
+  const pageRows=Array.isArray(rows)?rows.slice(0,AUDIT_PAGE_SIZE):[];
+  auditHasMore=Array.isArray(rows)&&rows.length>AUDIT_PAGE_SIZE;
+  renderAudit(pageRows);
+  renderAuditPagination();
+ }catch(error){
+  if(version!==auditRequestVersion||activePanelView!=="audit")return;
+  if(node)node.innerHTML='<p class="admin-permissions-error">'+escapeHtml(error.message||"No fue posible consultar el historial de auditoría.")+'</p>';
+  const pager=$("adminAuditPagination");if(pager)pager.innerHTML="";
+ }
+}
+
+const MODULE_TARGETS = {
+  infomira:["dropdown-infomira"],
+  testigos:["dropdown-testigos"],
+  centro_operaciones:["dropdown-puestos","dropdown-barrios-puestos"],
+  base_datos_general:["dropdown-base-datos-general"],
+  actividades:["dropdown-actividades"],
+  concejal:["dropdown-concejal"],
+  pqrs:["dropdown-pqrs-admin"]
+};
+function setModuleRestricted(element,restricted){
+  if(!element)return;
+  element.classList.toggle("module-access-restricted",restricted);
+  let overlay=element.querySelector(":scope > .module-access-lock-overlay");
+  if(restricted){
+    element.open=false;
+    if(!overlay){
+      overlay=document.createElement("div");
+      overlay.className="module-access-lock-overlay";
+      overlay.setAttribute("role","note");
+      overlay.innerHTML=element.id==="dropdown-testigos"
+        ? '<span class="module-access-lock-icon" aria-hidden="true">🔒</span><strong>Módulo temporalmente inactivo · En renovación</strong>'
+        : '<span class="module-access-lock-icon" aria-hidden="true">🔒</span><strong>No tienes acceso a este módulo</strong>';
+      element.appendChild(overlay);
+    }
+    element.setAttribute("aria-disabled","true");
+  }else{
+    overlay?.remove();
+    element.removeAttribute("aria-disabled");
+  }
+}
+async function waitForMiraDataClient(timeoutMs=15000){
+  if(window.MIRA_DATA?.listMyModulePermissions)return window.MIRA_DATA;
+  await new Promise((resolve,reject)=>{
+    let done=false;
+    const finish=()=>{if(done)return;done=true;window.removeEventListener("mira:data-ready",ready);clearTimeout(timer);resolve();};
+    const ready=()=>{if(window.MIRA_DATA?.listMyModulePermissions)finish();};
+    const timer=setTimeout(()=>{if(done)return;done=true;window.removeEventListener("mira:data-ready",ready);reject(new Error("El cliente de permisos no terminó de cargar."));},timeoutMs);
+    window.addEventListener("mira:data-ready",ready);ready();
+  });
+  return window.MIRA_DATA;
+}
+let moduleAccessRequestVersion=0;
+let lastAppliedModuleAccessUserId=null;
+async function applyModuleAccess(){
+  const current=window.MIRA_CURRENT_USER;
+  const allTargets=Object.values(MODULE_TARGETS).flat();
+  const requestVersion=++moduleAccessRequestVersion;
+  if(!current){
+    lastAppliedModuleAccessUserId=null;
+    allTargets.forEach(id=>setModuleRestricted($(id),true));
+    return;
+  }
+  if(current.role==="admin"&&current.authUserId===PRIMARY_ADMIN_AUTH_ID){
+    lastAppliedModuleAccessUserId=current.authUserId;
+    allTargets.forEach(id=>{
+      const temporaryLock=id==="dropdown-testigos";
+      setModuleRestricted($(id),temporaryLock);
+      $(id)?.classList.remove("hidden");
+    });
+    return;
+  }
+  if(!["operator","viewer"].includes(current.role)){
+    lastAppliedModuleAccessUserId=null;
+    allTargets.forEach(id=>{setModuleRestricted($(id),true);$(id)?.classList.remove("hidden");});
+    console.warn("[MIRA permisos] El rol no tiene capacidades operativas asignables.");
+    return;
+  }
+  const sameIdentity=lastAppliedModuleAccessUserId===current.authUserId;
+  // Barrios/Puestos y el mapa base son herramientas comunes para toda cuenta
+  // activa y aprobada del Centro de Operaciones. No dependen de permisos CRUD.
+  const commonMapTargets=new Set(MODULE_TARGETS.centro_operaciones);
+  // En identidades nuevas se bloquean preventivamente solo los módulos privados;
+  // el mapa común permanece disponible mientras se consulta la matriz.
+  if(!sameIdentity)allTargets.filter(id=>!commonMapTargets.has(id)).forEach(id=>setModuleRestricted($(id),true));
+  try{
+    const data=await waitForMiraDataClient();
+    const rows=await data.listMyModulePermissions();
+    if(requestVersion!==moduleAccessRequestVersion||window.MIRA_CURRENT_USER?.authUserId!==current.authUserId)return;
+    if(!Array.isArray(rows)) throw new Error("La respuesta de permisos no es válida.");
+    const canView=new Set(rows.filter(p=>p.allowed===true&&p.action_key==="view").map(p=>p.module_key));
+    Object.entries(MODULE_TARGETS).forEach(([moduleKey,ids])=>ids.forEach(id=>{
+      const element=$(id);
+      const allowed=moduleKey==="testigos"?false:(moduleKey==="centro_operaciones"||canView.has(moduleKey));
+      setModuleRestricted(element,!allowed);
+      if(element)element.classList.remove("hidden");
+    }));
+    lastAppliedModuleAccessUserId=current.authUserId;
+  }catch(error){
+    if(requestVersion!==moduleAccessRequestVersion||window.MIRA_CURRENT_USER?.authUserId!==current.authUserId)return;
+    // Si no podemos confirmar la matriz actual, no mantenemos autorizaciones
+    // visuales antiguas. Neon/RLS sigue siendo la barrera final de cada operación.
+    // Un fallo temporal al leer la matriz no debe quitar el mapa común.
+    // Se bloquean los módulos privados, pero Barrios/Puestos siguen visibles;
+    // sus datos sensibles continúan sujetos a las políticas RLS correspondientes.
+    allTargets.forEach(id=>{
+      const commonMap=commonMapTargets.has(id);
+      setModuleRestricted($(id),!commonMap);
+      $(id)?.classList.remove("hidden");
+    });
+    lastAppliedModuleAccessUserId=null;
+    console.warn("[MIRA permisos] No fue posible confirmar la matriz; se mantienen disponibles las herramientas cartográficas comunes y se bloquean los módulos privados.",error);
+    window.dispatchEvent(new CustomEvent("mira:module-access-refresh-failed",{detail:{message:error?.message||"No fue posible actualizar los permisos."}}));
+  }
+}
+function init(){
+  const launch=$("openAdminPermissionsBtn");
+  if(launch)launch.addEventListener("click",openPanel);
+  const switchUserTab=(tab)=>{
+    selectionRequestVersion++;
+    activeUserTab=tab;selectedProfile=null;permissionRows=[];
+    $("adminSelectedUser").innerHTML='<strong>Selecciona un usuario</strong><span>Sus permisos aparecerán aquí.</span>';
+    $("adminPermissionsMatrix").innerHTML='<p class="admin-permissions-empty">Selecciona un usuario para consultar sus permisos.</p>';
+    renderUsers();
+    const first=users.find(u=>u.role!=="admin"&&userApprovalStatus(u).bucket===tab);
+    if(first)selectUser(first.id);
+  };
+  $("adminUsersPendingTab")?.addEventListener("click",()=>switchUserTab("pending"));
+  $("adminUsersApprovedTab")?.addEventListener("click",()=>switchUserTab("approved"));
+  $("closeAdminPermissionsBtn")?.addEventListener("click",closePanel);
+  $("adminViewToggleBtn")?.addEventListener("click",()=>switchPanelView(activePanelView==="audit"?"users":"audit"));
+  $("refreshAdminAuditBtn")?.addEventListener("click",()=>loadAudit(true));
+  $("adminAuditPagination")?.addEventListener("click",event=>{
+    const button=event.target.closest("[data-audit-page]");if(!button||button.disabled)return;
+    if(button.dataset.auditPage==="previous")auditOffset=Math.max(0,auditOffset-AUDIT_PAGE_SIZE);
+    else if(button.dataset.auditPage==="next"&&auditHasMore)auditOffset+=AUDIT_PAGE_SIZE;
+    loadAudit();
+  });
+  $("refreshAdminUsersBtn")?.addEventListener("click",()=>{selectedProfile=null;$("adminSelectedUser").innerHTML='<strong>Selecciona un usuario</strong><span>Sus permisos aparecerán aquí.</span>';$("adminPermissionsMatrix").innerHTML='<p class="admin-permissions-empty">Selecciona un usuario.</p>';loadUsers();});
+  $("adminUsersList")?.addEventListener("click",event=>{
+    const button=event.target.closest("[data-profile-id]");
+    if(button)selectUser(button.dataset.profileId);
+  });
+  document.addEventListener("click",event=>{
+    const locked=event.target.closest(".module-access-restricted");
+    if(locked){event.preventDefault();event.stopImmediatePropagation();}
+  },true);
+  $("adminPermissionsMatrix")?.addEventListener("click",event=>{
+    const button=event.target.closest("[data-profile-approval]");
+    if(button)changeUserApproval(button);
+  });
+  $("adminPermissionsMatrix")?.addEventListener("change",event=>{
+    const input=event.target.closest('input[type="checkbox"][data-module]');
+    if(input)changePermission(input);
+  });
+  $("adminPermissionsPanel")?.addEventListener("click",event=>{if(event.target.id==="adminPermissionsPanel")closePanel();});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!$("adminPermissionsPanel")?.classList.contains("hidden"))closePanel();});
+  const syncVisibility=()=>{
+    const authorized=isAdmin();
+    if(launch){
+      launch.classList.toggle("hidden",!authorized);
+      launch.setAttribute("aria-hidden",String(!authorized));
+      launch.toggleAttribute("data-admin-visible",authorized);
+      if(!authorized)launch.setAttribute("tabindex","-1");
+      else launch.removeAttribute("tabindex");
+    }
+    const panel=$("adminPermissionsPanel");
+    if(panel){
+      // La autorización habilita el acceso al panel, pero NO debe abrirlo.
+      // Su estado visible/oculto solo cambia mediante openPanel() y closePanel().
+      panel.toggleAttribute("data-admin-visible",authorized);
+      if(!authorized){
+        closePanel();
+      }else{
+        panel.setAttribute("aria-hidden",String(panel.classList.contains("hidden")));
+      }
+    }
+  };
+  window.addEventListener("mira:authenticated",()=>{
+    syncVisibility();applyModuleAccess();
+    if(!$("adminPermissionsPanel")?.classList.contains("hidden"))loadUsers();
+  });
+  window.addEventListener("mira:signed-out",()=>{syncVisibility();applyModuleAccess();});
+  window.addEventListener("mira:permissions-refreshed",()=>{syncVisibility();applyModuleAccess();});
+  syncVisibility();
+  applyModuleAccess();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
